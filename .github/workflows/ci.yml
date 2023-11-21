@@ -12,6 +12,8 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - uses: oven-sh/setup-bun@v1
+      - name: Install Dependencies
+        run: bun install
       - name: Lint
         run: bun lint
   run-format:
@@ -19,6 +21,8 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - uses: oven-sh/setup-bun@v1
+      - name: Install Dependencies
+        run: bun install
       - name: Format
         run: bun format
   run-test:
@@ -26,6 +30,8 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - uses: oven-sh/setup-bun@v1
+      - name: Install Dependencies
+        run: bun install
       - name: Tests
         run: bun test:coverage
       - name: Upload Coverage Report
