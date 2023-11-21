@@ -1,0 +1,34 @@
+{
+  "name": "arrigt2",
+  "module": "src/index.ts",
+  "scripts": {
+    "dev": "bun run --hot src/index.ts",
+    "test": "vitest",
+    "test:coverage": "vitest --coverage",
+    "lint": "eslint ./src/**.ts",
+    "lint:fix": "eslint ./src/** --fix",
+    "format": "prettier ./src/** --check",
+    "format:fix": "prettier ./src/** --write"
+  },
+  "dependencies": {
+    "@pothos/core": "3.38.0",
+    "@prisma/client": "5.6.0",
+    "@sinclair/typebox": "0.31.28",
+    "graphql": "16.8.1",
+    "graphql-ws": "5.14.2",
+    "graphql-yoga": "5.0.0"
+  },
+  "devDependencies": {
+    "@graphql-tools/executor-http": "1.0.3",
+    "@typescript-eslint/eslint-plugin": "6.12.0",
+    "@typescript-eslint/parser": "6.12.0",
+    "@vitest/coverage-v8": "0.34.6",
+    "bun-types": "latest",
+    "eslint": "8.54.0",
+    "eslint-config-prettier": "9.0.0",
+    "prettier": "3.1.0",
+    "typescript": "5.3.2",
+    "vitest": "0.34.6"
+  },
+  "type": "module"
+}
