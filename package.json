@@ -2,7 +2,8 @@
   "name": "arrigt2",
   "module": "src/index.ts",
   "scripts": {
-    "dev": "bun run --hot src/index.ts",
+    "start": "export NODE_ENV=production && bun run src/index.ts",
+    "dev": "export NODE_ENV=development && bun run src/index.ts --hot",
     "test": "vitest",
     "test:coverage": "vitest --coverage",
     "lint": "eslint ./src/**.ts",
