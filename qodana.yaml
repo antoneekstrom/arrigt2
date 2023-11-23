@@ -9,8 +9,8 @@ profile:
   name: qodana.starter
 
 #Enable inspections
-include:
-  - name: ESLint
+#include:
+#  - name: ESLint
 
 #Disable inspections
 #exclude:
@@ -19,7 +19,7 @@ include:
 #      - <path/where/not/run/inspection>
 
 #Execute shell command before Qodana execution (Applied in CI/CD pipeline)
-#bootstrap: sh ./prepare-qodana.sh
+bootstrap: npm install eslint
 
 #Install IDE plugins before Qodana execution (Applied in CI/CD pipeline)
 #plugins:
