@@ -1,22 +1,19 @@
-import { createYoga } from "graphql-yoga";
-import schema from "./schema.ts";
-
-export const yogaRequestHandler = createYoga({
-  schema,
-  graphiql: Bun.env.GRAPHIQL === "true",
-  graphqlEndpoint: Bun.env.ENDPOINT_GRAPHQL,
-});
+import express from "express";
+import { yogaRequestHandler } from "./yoga.ts";
+import { remixRequestHandler } from "./remix.ts";
 
 export default function serve() {
-  const server = Bun.serve({
-    fetch: yogaRequestHandler,
-    port: Bun.env.PORT_BACKEND,
+  const app = express();
+  const port = process.env.PORT_BACKEND ?? 4000;
+
+  app.all("/", remixRequestHandler);
+  app.all(yogaRequestHandler.graphqlEndpoint, yogaRequestHandler);
+
+  app.listen(port, () => {
+    console.info(`Running in ${process.env.NODE_ENV} mode..`);
+    console.info(`Listening on ${port}`);
+    console.info(
+      `Serving GraphQL endpoint at ${yogaRequestHandler.graphqlEndpoint} 😎👌`,
+    );
   });
-
-  const graphqlEndpointUrl = new URL(
-    yogaRequestHandler.graphqlEndpoint,
-    `http://${server.hostname}:${server.port}`,
-  );
-
-  console.info(`Server is running on ${graphqlEndpointUrl} 😎👌`);
 }
