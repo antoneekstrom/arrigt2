@@ -8,7 +8,7 @@
     "start": "node build/bundle.cjs",
     "test": "vitest",
     "test:coverage": "vitest --coverage",
-    "lint": "eslint ./src/**.ts",
+    "lint": "eslint ./src/**",
     "lint:fix": "eslint ./src/** --fix",
     "format": "prettier ./src/** --check",
     "format:fix": "prettier ./src/** --write"
