@@ -14,10 +14,13 @@ Start development server with hot-reload:
 bun dev
 ```
 
-### Environment
+## Production
 
-Bun loads environment variables from `./.env.[development|production]` depending on the `NODE_ENV` variable. The `start`
-and `dev` scripts set this variable before starting.
+Build for production and run:
+
+```shell
+bun build && bun start
+```
 
 ## Integration
 
