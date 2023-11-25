@@ -14,8 +14,13 @@
     "composite": true,
     "noEmit": true,
     "allowImportingTsExtensions": true,
+    "allowJs": true,
+    "esModuleInterop": true,
     "types": [
-      "bun-types"
+      "bun-types",
+      "@remix-run/dev",
+      "@remix-run/node",
+      "@remix-run/express"
     ],
     "strict": true,
     "noUncheckedIndexedAccess": true,
