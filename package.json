@@ -6,6 +6,7 @@
     "build:bundle": "esbuild src/index.ts --bundle --platform=node --outfile=build/bundle.cjs",
     "dev": "cross-env NODE_ENV=development remix dev --manual -c \"tsx watch src/index.ts\"",
     "start": "node build/bundle.cjs",
+    "migrate:dev": "prisma migrate dev",
     "test": "vitest",
     "test:coverage": "vitest --coverage",
     "lint": "eslint ./src/**",
