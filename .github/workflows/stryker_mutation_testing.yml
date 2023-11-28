@@ -1,0 +1,23 @@
+name: Mutation Testing
+
+on:
+  workflow_dispatch:
+
+jobs:
+  run-mut-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: oven-sh/setup-bun@v1
+      - name: Install Dependencies
+        run: bun install
+      - name: Build Remix
+        run: bun build:remix
+      - name: Mutation Test
+        run: bun test:mutation
+      - name: Upload Report
+        uses: actions/upload-artifact@v3
+        with:
+          name: mutation-report
+          path: reports/mutation/mutation.html
+          retention-days: 5
