@@ -2,6 +2,7 @@
 
 build
 public/build
+reports
 
 # Logs
 
@@ -176,3 +177,6 @@ dist
 
 # Finder (MacOS) folder config
 .DS_Store
+
+# stryker temp files
+.stryker-tmp

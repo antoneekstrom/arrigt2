@@ -45,6 +45,7 @@ Linting, formatting, and testing is automatically performed by GitHub Actions on
 - Run ESLint manually with `bun run lint` or `bun run lint:fix`
 - Run Prettier manually with `bun run format` or `bun run format:fix`
 - Run Vitest manually with `bun run test` or `bun run test:coverage`
+- Run Stryker manually with `bun run test:mutation`
 
 ## Deployment
 
