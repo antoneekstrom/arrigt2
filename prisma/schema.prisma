@@ -9,3 +9,17 @@ datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
 }
+
+model Event {
+  id       String   @id @default(uuid())
+  title    String
+  dateTime DateTime
+  location String
+}
+
+model Event {
+  id       String   @id @default(uuid())
+  title    String
+  dateTime DateTime
+  location String
+}
