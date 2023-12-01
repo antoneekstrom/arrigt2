@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { buildHTTPExecutor } from "@graphql-tools/executor-http";
 import { createYoga } from "graphql-yoga";
-import schema from "./schema.ts";
+import schema from "./schema";
 import { parse } from "graphql";
 
 function assertSingleValue<TValue extends object>(
