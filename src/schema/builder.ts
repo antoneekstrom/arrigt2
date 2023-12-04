@@ -1,3 +1,8 @@
+/**
+ * @file Configures and exports the pothos schema builder.
+ * The schema builder exported here does not have any types defined. The object types are appended by the other files in this directory.
+ */
+
 import SchemaBuilder from "@pothos/core";
 import PrismaPlugin from "@pothos/plugin-prisma";
 import type PrismaTypes from "@pothos/plugin-prisma/generated";
