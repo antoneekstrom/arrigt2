@@ -1,3 +1,7 @@
+/**
+ * @file Configures and exports the `Event` object type.
+ */
+
 import builder from "./builder.ts";
 import prisma from "../prisma.ts";
 
@@ -20,6 +24,16 @@ builder.prismaObject("Event", {
       },
     }),
   }),
+  subscribe(subscriptions, parent, context, info) {
+    subscriptions.register(`${info.parentType.name}/Edit/${parent.id}`, {
+      refetch: () =>
+        prisma.event.findUniqueOrThrow({
+          where: {
+            id: parent.id,
+          },
+        }),
+    });
+  },
 });
 
 builder.queryFields((t) => ({
@@ -30,9 +44,8 @@ builder.queryFields((t) => ({
         ...query,
       }),
     smartSubscription: true,
-    subscribe: (subscriptions) => {
-      subscriptions.register("event:create");
-      subscriptions.register("event:edit");
+    subscribe(subscriptions, parent, args, context, info) {
+      subscriptions.register(`Event/Create`);
     },
   }),
 }));
@@ -46,9 +59,8 @@ builder.mutationFields((t) => ({
       dateTime: t.input.string(),
       location: t.input.string(),
     },
-    resolve: (query, parent, args, ctx) => {
-      ctx.pubsub.publish("event:edit");
-      return prisma.event.update({
+    resolve: async (query, parent, args, ctx, info) => {
+      const result = await prisma.event.update({
         ...query,
         where: {
           id: args.input.id,
@@ -61,6 +73,8 @@ builder.mutationFields((t) => ({
             args.input.location === null ? undefined : args.input.location,
         },
       });
+      ctx.pubsub.publish(`Event/Edit/${args.input.id}`);
+      return result;
     },
   }),
   createEvent: t.prismaFieldWithInput({
@@ -70,9 +84,8 @@ builder.mutationFields((t) => ({
       dateTime: t.input.string({ required: true }),
       location: t.input.string({ required: true }),
     },
-    resolve: (query, parent, args, ctx) => {
-      ctx.pubsub.publish("event:create");
-      return prisma.event.create({
+    resolve: async (query, parent, args, ctx, info) => {
+      const result = await prisma.event.create({
         ...query,
         data: {
           title: args.input.title,
@@ -80,6 +93,13 @@ builder.mutationFields((t) => ({
           location: args.input.location,
         },
       });
+      ctx.pubsub.publish(`Event/Create`);
+      return {
+        id: result.id,
+        dateTime: result.dateTime,
+        location: result.location,
+        title: result.title,
+      };
     },
   }),
 }));
