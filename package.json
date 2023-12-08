@@ -15,7 +15,9 @@
     "lint:fix": "eslint . --fix",
     "format": "prettier . --check",
     "format:fix": "prettier . --write",
-    "codegen": "graphql-codegen"
+    "generate:codegen": "graphql-codegen",
+    "generate:prisma": "prisma generate",
+    "generate": "bun generate:prisma && bun generate:codegen"
   },
   "dependencies": {
     "@pothos/core": "3.38.0",
