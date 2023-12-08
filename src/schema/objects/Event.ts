@@ -15,8 +15,9 @@ builder.prismaObject("Event", {
   fields: (t) => ({
     id: t.exposeID("id"),
     title: t.exposeString("title"),
+    location: t.exposeString("location"),
     dateTime: t.expose("dateTime", {
-      type: "Date",
+      type: "DateTime",
     }),
   }),
   subscribe(subscriptions, parent, _, info) {

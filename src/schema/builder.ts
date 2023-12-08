@@ -18,7 +18,7 @@ const builder = new SchemaBuilder<{
   PrismaTypes: PrismaTypes;
   Context: YogaContext;
   Scalars: {
-    Date: { Input: Date; Output: Date };
+    DateTime: { Input: Date; Output: Date };
   };
 }>({
   plugins: [PrismaPlugin, SmartSubscriptionsPlugin, WithInputPlugin],
@@ -36,7 +36,7 @@ const builder = new SchemaBuilder<{
   },
 });
 
-builder.addScalarType("Date", DateResolver, {});
+builder.addScalarType("DateTime", DateResolver, {});
 
 builder.queryType();
 builder.mutationType();
