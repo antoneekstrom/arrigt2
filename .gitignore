@@ -4,6 +4,7 @@ __generated__
 build
 public/build
 reports
+schema.graphql
 
 # Logs
 
