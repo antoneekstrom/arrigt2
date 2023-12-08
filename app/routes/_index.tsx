@@ -83,7 +83,6 @@ export default function Events() {
 }
 
 const EventListItem = (props: Partial<Event>) => {
-
   return (
     <li>
       <article>
