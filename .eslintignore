@@ -1,0 +1,11 @@
+*.json
+*.yaml
+*.config.js
+*.config.ts
+*.config.mjs
+*.md
+docs/**
+reports/**
+build/**
+public/**
+__generated__
