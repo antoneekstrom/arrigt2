@@ -4,7 +4,7 @@
 
 import builder from "./builder.ts";
 // Adds the Event object type
-import "./Event";
+import "./objects/Event.ts";
 
 /**
  * The GraphQL schema built with pothos.
