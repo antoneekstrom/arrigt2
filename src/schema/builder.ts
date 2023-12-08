@@ -12,10 +12,14 @@ import SmartSubscriptionsPlugin, {
 import { YogaContext } from "../yoga.ts";
 import WithInputPlugin from "@pothos/plugin-with-input";
 import prisma from "../prisma.ts";
+import { DateResolver } from "graphql-scalars";
 
 const builder = new SchemaBuilder<{
   PrismaTypes: PrismaTypes;
   Context: YogaContext;
+  Scalars: {
+    Date: { Input: Date; Output: Date };
+  };
 }>({
   plugins: [PrismaPlugin, SmartSubscriptionsPlugin, WithInputPlugin],
   smartSubscriptions: {
@@ -31,6 +35,8 @@ const builder = new SchemaBuilder<{
     onUnusedQuery: process.env.NODE_ENV === "production" ? null : "warn",
   },
 });
+
+builder.addScalarType("Date", DateResolver, {});
 
 builder.queryType();
 builder.mutationType();
