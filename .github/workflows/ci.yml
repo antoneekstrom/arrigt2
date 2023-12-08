@@ -16,8 +16,6 @@ jobs:
         run: bun install
       - name: Generate Code
         run: bun generate
-      - name: Emit GraphQL Schema
-        run: bun codegen
       - name: Lint
         run: bun lint
   run-format:
