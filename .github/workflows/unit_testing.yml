@@ -1,9 +1,7 @@
 name: Unit Testing
 
 on:
-  pull_request:
-    branches: [main]
-    types: [synchronize]
+  push:
 
 jobs:
   run-unit-test:

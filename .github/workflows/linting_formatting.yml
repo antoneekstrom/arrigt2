@@ -1,9 +1,7 @@
 name: Linting & Formatting
 
 on:
-  pull_request:
-    branches: [main]
-    types: [synchronize]
+  push:
 
 jobs:
   run-lint:
