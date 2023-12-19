@@ -16,10 +16,7 @@ type QueryArgs = {
  * @param argsBefore the arguments to add before the normal arguments
  * @returns the extended prisma client
  */
-export function extendWithQueryArgsBefore(
-  prisma: PrismaClient,
-  argsBefore: QueryArgs,
-) {
+export function extendQueryArgs(prisma: PrismaClient, argsBefore: QueryArgs) {
   return prisma.$extends({
     query: {
       $allOperations({ args, query }) {
@@ -32,8 +29,6 @@ export function extendWithQueryArgsBefore(
   });
 }
 
-export type AnyPrismaClient =
-  | PrismaClient
-  | ReturnType<typeof extendWithQueryArgsBefore>;
+export type AnyPrismaClient = PrismaClient | ReturnType<typeof extendQueryArgs>;
 
 export default new PrismaClient({});
