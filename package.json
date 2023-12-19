@@ -21,6 +21,8 @@
     "build:bundle": "esbuild src/index.ts --bundle --platform=node --outfile=build/bundle.cjs"
   },
   "dependencies": {
+    "@conform-to/react": "0.9.1",
+    "@conform-to/zod": "0.9.1",
     "@pothos/core": "3.38.0",
     "@pothos/plugin-complexity": "3.13.0",
     "@pothos/plugin-prisma": "3.61.0",
@@ -40,6 +42,7 @@
     "graphql-yoga": "5.0.0",
     "isbot": "3.7.1",
     "react": "18.2.0",
+    "react-dom": "18.2.0",
     "zod": "3.22.4"
   },
   "devDependencies": {
