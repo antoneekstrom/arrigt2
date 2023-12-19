@@ -1,0 +1,21 @@
+name: Integration Testing
+
+on:
+  workflow_dispatch:
+
+jobs:
+  run-integration-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: oven-sh/setup-bun@v1
+      - name: Install Dependencies
+        run: bun install
+      - name: Test
+        run: bun test:integration
+      - name: Upload Report
+        uses: actions/upload-artifact@v4
+        with:
+          name: integration-report
+          path: reports/integration/
+          retention-days: 5

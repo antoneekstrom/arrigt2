@@ -1,8 +1,9 @@
-name: CI
+name: Linting & Formatting
 
 on:
   pull_request:
-    branches: ["main"]
+    branches: [main]
+    types: [synchronize]
 
 jobs:
   run-lint:
@@ -25,18 +26,3 @@ jobs:
         run: bun install
       - name: Format
         run: bun format
-  run-test:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
-      - uses: oven-sh/setup-bun@v1
-      - name: Install Dependencies
-        run: bun install
-      - name: Test
-        run: bun test:coverage
-      - name: Upload Coverage Report
-        uses: actions/upload-artifact@v3
-        with:
-          name: coverage-report
-          path: coverage/index.html
-          retention-days: 5
