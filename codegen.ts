@@ -1,7 +1,11 @@
 import type { CodegenConfig } from "@graphql-codegen/cli";
 import type { IGraphQLConfig } from "graphql-config";
 import config from "./graphql.config";
-import { DateTimeResolver } from "graphql-scalars";
+import {
+  DateTimeResolver,
+  EmailAddressResolver,
+  UUIDResolver,
+} from "graphql-scalars";
 
 export default {
   ...config,
@@ -19,6 +23,8 @@ export default {
       config: {
         scalars: {
           DateTime: DateTimeResolver.extensions.codegenScalarType,
+          UUID: UUIDResolver.extensions.codegenScalarType,
+          Email: EmailAddressResolver.extensions.codegenScalarType,
         },
       },
     },
