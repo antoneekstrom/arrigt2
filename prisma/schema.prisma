@@ -1,6 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -14,9 +11,58 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+/// Represents an event. Event organizers can manage events. Visitors can register for events.
 model Event {
-  id       String   @id @default(uuid())
+  emailRegistrations EmailRegistration[]
+
+  id String @id @default(uuid())
+
   title    String
   dateTime DateTime
   location String
+
+  createdAt                DateTime @default(now())
+  isPublishedAt            DateTime @default(now())
+  opensForRegistrationsAt  DateTime @default(now())
+  closesForRegistrationsAt DateTime @default(now())
+}
+
+/// Represents a person that has registered to an event by email.
+/// There can only exist one registration per email and event.
+model EmailRegistration {
+  event        Event         @relation(fields: [eventId], references: [id])
+  personalInfo PersonalInfo? @relation(fields: [personalInfoId], references: [id])
+  contactInfo  ContactInfo   @relation(fields: [email], references: [email])
+
+  eventId        String
+  personalInfoId String?
+
+  email     String
+  createdAt DateTime @default(now())
+
+  @@id([email, eventId])
+}
+
+/// Represents the contact information of a person, that is registered to one or more events.
+model ContactInfo {
+  emailRegistrations EmailRegistration[]
+
+  id    String @id @default(uuid())
+  email String @unique
+
+  firstName String
+  lastName  String
+
+  firstNickName String?
+  lastNickName  String?
+}
+
+/// Represents personal information about a registration, such as food preferences.
+model PersonalInfo {
+  emailRegistrations EmailRegistration[]
+
+  id String @id @default(uuid())
+
+  allergies String[]
+  diet      String
 }
