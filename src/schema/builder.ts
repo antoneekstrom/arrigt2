@@ -3,25 +3,42 @@
  * The schema builder exported here does not have any types defined. The object types are appended by the other files in this directory.
  */
 
+import type PrismaTypes from "@pothos/plugin-prisma/generated";
 import SchemaBuilder from "@pothos/core";
 import PrismaPlugin from "@pothos/plugin-prisma";
-import type PrismaTypes from "@pothos/plugin-prisma/generated";
+import ValidationPlugin from "@pothos/plugin-validation";
+import WithInputPlugin from "@pothos/plugin-with-input";
+import ComplexityPlugin from "@pothos/plugin-complexity";
 import SmartSubscriptionsPlugin, {
   subscribeOptionsFromIterator,
 } from "@pothos/plugin-smart-subscriptions";
 import { YogaContext } from "../yoga.ts";
-import WithInputPlugin from "@pothos/plugin-with-input";
 import prisma from "../prisma.ts";
-import { DateResolver } from "graphql-scalars";
+import {
+  DateTimeResolver,
+  EmailAddressResolver,
+  UUIDResolver,
+} from "graphql-scalars";
 
 const builder = new SchemaBuilder<{
   PrismaTypes: PrismaTypes;
   Context: YogaContext;
   Scalars: {
     DateTime: { Input: Date; Output: Date };
+    Email: { Input: string; Output: string };
+    UUID: { Input: string; Output: string };
   };
 }>({
-  plugins: [PrismaPlugin, SmartSubscriptionsPlugin, WithInputPlugin],
+  plugins: [
+    PrismaPlugin,
+    SmartSubscriptionsPlugin,
+    WithInputPlugin,
+    ValidationPlugin,
+    ComplexityPlugin,
+  ],
+  validationOptions: {
+    validationError: (zodError) => zodError,
+  },
   smartSubscriptions: {
     ...subscribeOptionsFromIterator((name, { pubsub }) => {
       return pubsub.subscribe(name);
@@ -29,14 +46,23 @@ const builder = new SchemaBuilder<{
   },
   prisma: {
     client: prisma,
-    // use where clause from prismaRelatedConnection for totalCount (will true by default in next major version)
     filterConnectionTotalCount: true,
-    // warn when not using a query parameter correctly
     onUnusedQuery: process.env.NODE_ENV === "production" ? null : "warn",
+  },
+  complexity: {
+    defaultComplexity: 1,
+    defaultListMultiplier: 10,
+    limit: {
+      complexity: 500,
+      depth: 10,
+      breadth: 50,
+    },
   },
 });
 
-builder.addScalarType("DateTime", DateResolver, {});
+builder.addScalarType("DateTime", DateTimeResolver, {});
+builder.addScalarType("Email", EmailAddressResolver, {});
+builder.addScalarType("UUID", UUIDResolver, {});
 
 builder.queryType();
 builder.mutationType();

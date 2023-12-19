@@ -3,8 +3,10 @@
  */
 
 import builder from "./builder.ts";
-// Adds the Event object type
 import "./objects/Event.ts";
+import "./objects/PersonalInfo.ts";
+import "./objects/ContactInfo.ts";
+import "./objects/EmailRegistration.ts";
 
 /**
  * The GraphQL schema built with pothos.
