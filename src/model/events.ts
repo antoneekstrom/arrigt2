@@ -1,19 +1,152 @@
-import type { Prisma } from "@prisma/client";
+import { z } from "zod";
+import { Prisma } from "@prisma/client";
 import { AnyPrismaClient } from "../prisma";
+import { inOneWeek, now } from "../common/dateTime";
+import { Event } from "@prisma/client";
 
-type NullableProps<T> = { [P in keyof T]?: T[P] | undefined | null };
+export type EventSchema = z.infer<typeof eventSchema>;
 
-type NonNullableProps<T> = { [P in keyof T]: Exclude<T[P], null> };
+export const EVENT_TITLE_MIN_LENGTH = 3;
+export const EVENT_TITLE_MAX_LENGTH = 64;
+export const EVENT_LOCATION_MIN_LENGTH = 3;
+export const EVENT_LOCATION_MAX_LENGTH = 32;
+
+export const eventSchemaRequired = z.object({
+  title: z.string().min(EVENT_TITLE_MIN_LENGTH).max(EVENT_TITLE_MAX_LENGTH),
+  location: z
+    .string()
+    .min(EVENT_LOCATION_MIN_LENGTH)
+    .max(EVENT_LOCATION_MAX_LENGTH),
+  dateTime: z.date(),
+});
+
+export const eventSchemaOptional = z.object({
+  isPublishedAt: z.date(),
+  opensForRegistrationsAt: z.date(),
+  closesForRegistrationsAt: z.date(),
+});
+
+export const eventSchemaMeta = z.object({
+  id: z.string().uuid().optional(),
+  createdAt: z.date().optional(),
+});
+
+export const eventSchema = eventSchemaMeta
+  .merge(eventSchemaRequired)
+  .merge(eventSchemaOptional)
+  .refine(
+    eventOpensBeforeClosing,
+    "Event cannot close for registration before opening.",
+  )
+  .refine(
+    eventIsPublishedBeforeOpening,
+    "Event cannot open or close for registration before being published.",
+  )
+  .refine(
+    eventStartsAfterClosing,
+    "Event cannot take place before being published, or before opening or closing for registration.",
+  );
 
 /**
- * Returns a copy of the given object without any properties that are null.
- * @param obj object to copy
- * @returns object without null properties
+ *
+ * @param title
+ * @param location
+ * @param dateTime
+ * @returns
  */
-function omitNullFields<T>(obj: NullableProps<T>): NonNullableProps<T> {
-  return Object.fromEntries(
-    Object.entries(obj).filter(([, value]) => value !== null),
-  ) as NonNullableProps<T>;
+export function createEventData(
+  title: string,
+  location: string,
+  dateTime: Date,
+  isPublishedAt = dateTime,
+  opensForRegistrationsAt = dateTime,
+  closesForRegistrationsAt = inOneWeek(opensForRegistrationsAt),
+): EventSchema {
+  return {
+    title,
+    location,
+    dateTime,
+    createdAt: now(),
+    isPublishedAt,
+    opensForRegistrationsAt,
+    closesForRegistrationsAt,
+  };
+}
+
+/**
+ *
+ * @param event
+ * @returns
+ */
+export function eventOpensBeforeClosing(
+  event: Pick<Event, "closesForRegistrationsAt" | "opensForRegistrationsAt">,
+) {
+  return event.closesForRegistrationsAt > event.opensForRegistrationsAt;
+}
+
+/**
+ *
+ * @param event
+ * @returns
+ */
+export function eventIsPublishedBeforeOpening(
+  event: Pick<
+    Event,
+    "closesForRegistrationsAt" | "opensForRegistrationsAt" | "isPublishedAt"
+  >,
+) {
+  return (
+    event.isPublishedAt <= event.opensForRegistrationsAt &&
+    event.isPublishedAt < event.closesForRegistrationsAt
+  );
+}
+
+/**
+ *
+ * @param event
+ * @returns
+ */
+export function eventStartsAfterClosing(
+  event: Pick<
+    Event,
+    | "dateTime"
+    | "isPublishedAt"
+    | "closesForRegistrationsAt"
+    | "opensForRegistrationsAt"
+  >,
+) {
+  return (
+    event.dateTime >= event.isPublishedAt &&
+    event.dateTime >= event.opensForRegistrationsAt &&
+    event.dateTime <= event.closesForRegistrationsAt
+  );
+}
+
+/**
+ *
+ * @param event
+ * @returns
+ */
+export function isEventOpenForRegistering(
+  event: Pick<
+    Event,
+    "isPublishedAt" | "closesForRegistrationsAt" | "opensForRegistrationsAt"
+  >,
+  now = new Date(Date.now()),
+) {
+  if (now < event.isPublishedAt) {
+    return false;
+  }
+
+  if (now < event.opensForRegistrationsAt) {
+    return false;
+  }
+
+  if (now >= event.closesForRegistrationsAt) {
+    return false;
+  }
+
+  return true;
 }
 
 /**
@@ -50,27 +183,27 @@ export function findEventById(prisma: AnyPrismaClient, id: string) {
 export function updateEventById(
   prisma: AnyPrismaClient,
   id: string,
-  data: NullableProps<Prisma.EventUpdateInput>,
+  data: Prisma.EventUpdateInput,
 ) {
   return prisma.event.update({
     where: {
       id,
     },
-    data: omitNullFields(data),
+    data,
   });
 }
 
 /**
  * Creates a new event with the given data and a random id.
  * @param prisma prisma client
- * @param event event data
+ * @param data event data
  * @returns created event
  */
-export function createEvent(
+export function addEvent(
   prisma: AnyPrismaClient,
-  event: Prisma.EventCreateInput,
+  data: Prisma.EventCreateInput,
 ) {
   return prisma.event.create({
-    data: event,
+    data,
   });
 }
