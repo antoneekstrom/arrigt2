@@ -4,10 +4,16 @@
 
 import { PrismaClient } from "@prisma/client";
 
-type QueryArgs = {
+type ResolverQueryArgs = {
   include?: unknown;
   select?: unknown;
 };
+
+type AnyPrismaClient =
+  | PrismaClient
+  | ReturnType<typeof extendWithResolverQueryArgs>;
+
+const prisma = new PrismaClient({});
 
 /**
  * Returns an extended prisma client that inserts the given query arguments
@@ -16,7 +22,10 @@ type QueryArgs = {
  * @param argsBefore the arguments to add before the normal arguments
  * @returns the extended prisma client
  */
-export function extendQueryArgs(prisma: PrismaClient, argsBefore: QueryArgs) {
+export function extendWithResolverQueryArgs(
+  prisma: PrismaClient,
+  argsBefore: ResolverQueryArgs,
+) {
   return prisma.$extends({
     query: {
       $allOperations({ args, query }) {
@@ -29,6 +38,23 @@ export function extendQueryArgs(prisma: PrismaClient, argsBefore: QueryArgs) {
   });
 }
 
-export type AnyPrismaClient = PrismaClient | ReturnType<typeof extendQueryArgs>;
+export class PrismaDelegate {
+  constructor(protected readonly prisma: AnyPrismaClient) {}
 
-export default new PrismaClient({});
+  static fromSingleton<T extends PrismaDelegate>(delegate: {
+    new (prisma: AnyPrismaClient): T;
+  }): T {
+    return new delegate(prisma);
+  }
+
+  static fromResolverArgs<T extends PrismaDelegate>(
+    delegate: {
+      new (prisma: AnyPrismaClient): T;
+    },
+    args: ResolverQueryArgs,
+  ): T {
+    return new delegate(extendWithResolverQueryArgs(prisma, args));
+  }
+}
+
+export default prisma;
