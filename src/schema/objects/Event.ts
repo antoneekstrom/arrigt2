@@ -3,15 +3,12 @@
  */
 
 import builder from "../builder.ts";
-import prisma, { extendQueryArgs } from "../../prisma.ts";
+import prisma, { PrismaDelegate } from "../../prisma.ts";
 import {
-  findEventById,
-  findAllEvents,
   EventSchema,
-  updateEventById,
   createEventData,
-  addEvent,
   eventSchemaRequired,
+  Events,
 } from "../../model/events.ts";
 
 builder.prismaObject("Event", {
@@ -38,7 +35,7 @@ builder.prismaObject("Event", {
   }),
   subscribe(subscriptions, parent, _, info) {
     subscriptions.register(`${info.parentType.name}/Edit/${parent.id}`, {
-      refetch: () => findEventById(prisma, parent.id),
+      refetch: () => new Events(prisma).findById(parent.id),
     });
   },
 });
@@ -47,7 +44,7 @@ builder.queryFields((t) => ({
   allEvents: t.prismaField({
     type: ["Event"],
     resolve: async (query) =>
-      await findAllEvents(extendQueryArgs(prisma, query)),
+      await PrismaDelegate.fromResolverArgs(Events, query).findAll(),
     smartSubscription: true,
     subscribe(subscriptions) {
       subscriptions.register(`Event/Create`);
@@ -59,7 +56,7 @@ builder.queryFields((t) => ({
       id: t.arg({ type: "UUID", required: true }),
     },
     resolve: async (query, _, { id }) =>
-      await findEventById(extendQueryArgs(prisma, query), id),
+      await PrismaDelegate.fromResolverArgs(Events, query).findById(id),
   }),
 }));
 
@@ -104,8 +101,10 @@ builder.mutationFields((t) => ({
       }),
     },
     resolve: async (query, _, { input, id }, ctx) => {
-      const result = await updateEventById(
-        extendQueryArgs(prisma, query),
+      const result = await PrismaDelegate.fromResolverArgs(
+        Events,
+        query,
+      ).updateById(
         id,
         createEventData(
           input.title,
@@ -128,8 +127,10 @@ builder.mutationFields((t) => ({
       }),
     },
     resolve: async (query, _, { input }, ctx) => {
-      const result = await addEvent(
-        extendQueryArgs(prisma, query),
+      const result = await PrismaDelegate.fromResolverArgs(
+        Events,
+        query,
+      ).create(
         createEventData(
           input.title,
           input.location,

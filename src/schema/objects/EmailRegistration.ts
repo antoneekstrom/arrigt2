@@ -1,8 +1,5 @@
-import {
-  findEmailRegistrationsByEmail,
-  addEmailRegistrationForEvent,
-} from "../../model/registrations";
-import prisma, { extendQueryArgs } from "../../prisma";
+import { Registrations } from "../../model/registrations";
+import { PrismaDelegate } from "../../prisma";
 import builder from "../builder";
 
 builder.prismaObject("EmailRegistration", {
@@ -29,7 +26,7 @@ builder.queryFields((t) => ({
       }),
     },
     resolve: (query, _, { input: { email } }) =>
-      findEmailRegistrationsByEmail(extendQueryArgs(prisma, query), email),
+      PrismaDelegate.fromResolverArgs(Registrations, query).findByEmail(email),
   }),
 }));
 
@@ -56,12 +53,15 @@ builder.mutationFields((t) => ({
       _,
       { input: { eventId, email, firstName, lastName } },
     ) =>
-      addEmailRegistrationForEvent(extendQueryArgs(prisma, query), eventId, {
-        email,
-        firstName,
-        lastName,
-        firstNickName: null,
-        lastNickName: null,
-      }),
+      PrismaDelegate.fromResolverArgs(Registrations, query).createForEventById(
+        eventId,
+        {
+          email,
+          firstName,
+          lastName,
+          firstNickName: null,
+          lastNickName: null,
+        },
+      ),
   }),
 }));
