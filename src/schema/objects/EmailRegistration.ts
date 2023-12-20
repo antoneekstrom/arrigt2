@@ -1,5 +1,3 @@
-import { Registrations } from "../../model/registrations";
-import { PrismaDelegate } from "../../prisma";
 import builder from "../builder";
 
 builder.prismaObject("EmailRegistration", {
@@ -25,8 +23,8 @@ builder.queryFields((t) => ({
         required: true,
       }),
     },
-    resolve: (query, _, { input: { email } }) =>
-      PrismaDelegate.fromResolverArgs(Registrations, query).findByEmail(email),
+    resolve: (query, _parent, { input: { email } }, { registrations }) =>
+      registrations.injectQueryArgs(query).findByEmail(email),
   }),
 }));
 
@@ -50,18 +48,16 @@ builder.mutationFields((t) => ({
     },
     resolve: async (
       query,
-      _,
+      _parent,
       { input: { eventId, email, firstName, lastName } },
+      { registrations },
     ) =>
-      PrismaDelegate.fromResolverArgs(Registrations, query).createForEventById(
-        eventId,
-        {
-          email,
-          firstName,
-          lastName,
-          firstNickName: null,
-          lastNickName: null,
-        },
-      ),
+      await registrations.injectQueryArgs(query).createForEventById(eventId, {
+        email,
+        firstName,
+        lastName,
+        firstNickName: null,
+        lastNickName: null,
+      }),
   }),
 }));

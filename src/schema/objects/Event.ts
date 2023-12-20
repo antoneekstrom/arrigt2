@@ -3,12 +3,10 @@
  */
 
 import builder from "../builder.ts";
-import prisma, { PrismaDelegate } from "../../prisma.ts";
 import {
   EventSchema,
   createEventData,
   eventSchemaRequired,
-  Events,
 } from "../../model/events.ts";
 
 builder.prismaObject("Event", {
@@ -33,9 +31,9 @@ builder.prismaObject("Event", {
     }),
     emailRegistrations: t.relation("emailRegistrations"),
   }),
-  subscribe(subscriptions, parent, _, info) {
-    subscriptions.register(`${info.parentType.name}/Edit/${parent.id}`, {
-      refetch: () => new Events(prisma).findById(parent.id),
+  subscribe(subscriptions, parent, { events }) {
+    subscriptions.register("Event", {
+      refetch: () => events.findById(parent.id),
     });
   },
 });
@@ -43,11 +41,11 @@ builder.prismaObject("Event", {
 builder.queryFields((t) => ({
   allEvents: t.prismaField({
     type: ["Event"],
-    resolve: async (query) =>
-      await PrismaDelegate.fromResolverArgs(Events, query).findAll(),
+    resolve: async (query, _parent, _args, { events }) =>
+      await events.injectQueryArgs(query).findAll(),
     smartSubscription: true,
     subscribe(subscriptions) {
-      subscriptions.register(`Event/Create`);
+      subscriptions.register("Event");
     },
   }),
   eventById: t.prismaField({
@@ -55,8 +53,12 @@ builder.queryFields((t) => ({
     args: {
       id: t.arg({ type: "UUID", required: true }),
     },
-    resolve: async (query, _, { id }) =>
-      await PrismaDelegate.fromResolverArgs(Events, query).findById(id),
+    resolve: async (query, _, { id }, { events }) =>
+      await events.injectQueryArgs(query).findById(id),
+    smartSubscription: true,
+    subscribe(subscriptions) {
+      subscriptions.register("Event");
+    },
   }),
 }));
 
@@ -100,21 +102,15 @@ builder.mutationFields((t) => ({
         required: true,
       }),
     },
-    resolve: async (query, _, { input, id }, ctx) => {
-      const result = await PrismaDelegate.fromResolverArgs(
-        Events,
-        query,
-      ).updateById(
-        id,
-        createEventData(
-          input.title,
-          input.location,
-          input.dateTime,
-          input.isPublishedAt ?? undefined,
-          input.opensForRegistrationsAt ?? undefined,
-        ),
+    resolve: async (query, _, { input, id }, { events }) => {
+      const event = createEventData(
+        input.title,
+        input.location,
+        input.dateTime,
+        input.isPublishedAt ?? undefined,
+        input.opensForRegistrationsAt ?? undefined,
       );
-      ctx.pubsub.publish(`Event/Edit/${id}`);
+      const result = await events.injectQueryArgs(query).updateById(id, event);
       return result;
     },
   }),
@@ -126,20 +122,15 @@ builder.mutationFields((t) => ({
         required: true,
       }),
     },
-    resolve: async (query, _, { input }, ctx) => {
-      const result = await PrismaDelegate.fromResolverArgs(
-        Events,
-        query,
-      ).create(
-        createEventData(
-          input.title,
-          input.location,
-          input.dateTime,
-          input.isPublishedAt ?? undefined,
-          input.opensForRegistrationsAt ?? undefined,
-        ),
+    resolve: async (query, _, { input }, { events }) => {
+      const event = createEventData(
+        input.title,
+        input.location,
+        input.dateTime,
+        input.isPublishedAt ?? undefined,
+        input.opensForRegistrationsAt ?? undefined,
       );
-      ctx.pubsub.publish(`Event/Create`);
+      const result = await events.injectQueryArgs(query).create(event);
       return result;
     },
   }),
