@@ -6,6 +6,9 @@ import { Prisma, PrismaClient } from "@prisma/client";
 import { DynamicClientExtensionThis } from "@prisma/client/runtime/library";
 import { PubSub } from "./yoga";
 
+/**
+ * Can be either a PrismaClient or a PrismaClient with extensions.
+ */
 type AnyPrismaClient =
   | PrismaClient
   | DynamicClientExtensionThis<
@@ -14,13 +17,16 @@ type AnyPrismaClient =
       Record<string, unknown>
     >;
 
+/**
+ * Prisma client singleton instance.
+ */
 const prisma = new PrismaClient({});
 
 /**
- * Returns a prisma client extension that injects the given query arguments along with
+ * Injects the given query arguments along with
  * the normal arguments that are given when calling the query.
  * @param extra the arguments to add
- * @returns the extended prisma client
+ * @returns the prisma extension
  */
 export function injectQueryArgsExtension(extra: {
   include?: unknown;
@@ -30,6 +36,7 @@ export function injectQueryArgsExtension(extra: {
     name: injectQueryArgsExtension.name,
     query: {
       $allOperations({ args, query }) {
+        console.log("Injecting query args: ", JSON.stringify(extra));
         return query({
           ...extra,
           ...args,
@@ -41,30 +48,61 @@ export function injectQueryArgsExtension(extra: {
 
 /**
  *
- * @param pubsub
+ * @param model
+ * @param operation
+ * @param id
  * @returns
+ */
+export function createSubscriptionEventString(
+  model: string,
+  operation: MutationOperation,
+  id?: string,
+) {
+  return id ? `${model}/${operation}/${id}` : `${model}/${operation}`;
+}
+
+type MutationOperation =
+  | "create"
+  | "update"
+  | "delete"
+  | "createMany"
+  | "updateMany"
+  | "deleteMany";
+
+function isMutationOperation(
+  operation: string,
+): operation is MutationOperation {
+  return ["create", "update", "delete"].some((op) => operation.includes(op));
+}
+
+/**
+ * Publishes events to the given pubsub instance when a create, update or delete operation is performed.
+ * @param pubsub
+ * @returns the prisma extension
  */
 export function pubsubExtension(pubsub: PubSub) {
   return Prisma.defineExtension({
     name: pubsubExtension.name,
     query: {
       $allModels: {},
-      $allOperations({ args, query, operation, model }) {
-        if (
-          !operation.includes("create") &&
-          !operation.includes("update") &&
-          !operation.includes("delete")
-        ) {
-          console.log("Skipping publish event: ", operation);
+      async $allOperations({ args, query, operation, model }) {
+        if (!model) {
           return query(args);
         }
 
-        if (model) {
-          console.log(`Publishing event: ${model}/${operation}`);
-          pubsub.publish(model, operation);
+        // Execute query before publishing event, so subscribers can refetch the new data
+        const result = await query(args);
+
+        if (isMutationOperation(operation)) {
+          const event = createSubscriptionEventString(
+            model,
+            operation,
+            args.where?.id,
+          );
+          pubsub.publish(event);
         }
 
-        return query(args);
+        return result;
       },
     },
   });
@@ -75,28 +113,21 @@ type DelegateConstructor<T extends PrismaDelegate> = new (
 ) => T;
 
 /**
- *
+ * Contains a specific instance of a prisma client, so that it doesn't have to be passed around in case
+ * we need to extend clients.
  */
 export class PrismaDelegate {
   constructor(protected readonly prisma: AnyPrismaClient) {}
 
-  static fromSingleton<T extends PrismaDelegate>(
-    delegate: DelegateConstructor<T>,
-  ): T {
-    return new delegate(prisma);
-  }
-
-  static fromResolverArgs<T extends PrismaDelegate>(
-    delegate: DelegateConstructor<T>,
-    args: Parameters<typeof injectQueryArgsExtension>[0],
-  ): T {
-    const extendedClient = prisma.$extends(injectQueryArgsExtension(args));
-    return new delegate(extendedClient);
-  }
-
+  /**
+   * Injects the given query arguments along with
+   * the normal arguments that are given when calling the query.
+   * @param args the arguments to add
+   * @returns this
+   */
   injectQueryArgs(args: Parameters<typeof injectQueryArgsExtension>[0]) {
-    this.prisma.$extends(injectQueryArgsExtension(args));
-    return this;
+    const ctor = this.constructor as DelegateConstructor<this>;
+    return new ctor(this.prisma.$extends(injectQueryArgsExtension(args)));
   }
 }
 
