@@ -8,7 +8,7 @@ import { remixReady, remixRequestHandler } from "./remix.ts";
 import { createServer, Server } from "http";
 /**
  * Returns the configured express server instance.
- * This includes the graphql and remix request handlers, and a websocket server for graphql subscriptions.
+ * This includes the graphql and remix request handlers.
  */
 export default function serve() {
   const app = express();
@@ -48,6 +48,7 @@ function start(httpServer: Server) {
     console.info(`Serving GraphQL at ${graphlEndpoint} 😎👌`);
     console.info(`Serving Remix at ${remixEndpoint} 😤🤘`);
 
+    // Enables hot module reloading in development mode.
     if (process.env.NODE_ENV === "development") {
       remixReady();
     }

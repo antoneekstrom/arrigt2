@@ -5,23 +5,35 @@
 import { createPubSub, createYoga, YogaInitialContext } from "graphql-yoga";
 import prisma, { pubsubExtension } from "./prisma";
 import schema from "./schema";
-import { Events } from "./model/events";
-import { Registrations } from "./model/registrations";
+import { Registrations } from "./model/db/Registrations";
+import { Events } from "./model/db/Events";
 
+/**
+ * Keeps track of GraphQL subscriptions.
+ * @see https://the-guild.dev/graphql/yoga-server/docs/features/subscriptions#pubsub
+ */
 export type PubSub = ReturnType<typeof createPubSub>;
 
+/**
+ * Instantiates an extended Prisma client and model classes for interacting with the database.
+ * This context is available to all GraphQL resolvers.
+ * @returns Initial GraphQL context
+ */
 const createInitialContext = () => {
   const pubsub = createPubSub<{
     [model: string]: [string];
   }>();
+  const prismaExt = prisma.$extends(pubsubExtension(pubsub));
   return {
-    // Keeps track of GraphQL subscriptions
     pubsub,
-    events: new Events(prisma.$extends(pubsubExtension(pubsub))),
-    registrations: new Registrations(prisma.$extends(pubsubExtension(pubsub))),
+    events: new Events(prismaExt),
+    registrations: new Registrations(prismaExt),
   };
 };
 
+/**
+ * Handles GraphQL requests.
+ */
 export const yogaRequestHandler = createYoga({
   schema,
   graphiql: process.env.NODE_ENV === "development",

@@ -7,7 +7,7 @@ import { broadcastDevReady } from "@remix-run/node";
 import * as build from "../build/index.js";
 
 /**
- * tells remix that the server is ready to receive requests.
+ * Tells remix that the server is ready to receive requests.
  * Should be called after the server has started, and only in development mode. Enables HMR and HDR.
  */
 export function remixReady() {
@@ -15,7 +15,7 @@ export function remixReady() {
 }
 
 /**
- * The request handler that serves remix.
+ * Handles requests for the remix frontend.
  */
 export const remixRequestHandler = createRequestHandler({
   build: build as never,
