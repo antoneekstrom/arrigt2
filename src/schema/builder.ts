@@ -20,15 +20,20 @@ import {
   UUIDResolver,
 } from "graphql-scalars";
 
-const builder = new SchemaBuilder<{
+/**
+ * Describes the types that are available in the schema.
+ */
+interface SchemaTypes {
   PrismaTypes: PrismaTypes;
   Context: YogaContext;
-  Scalars: {
-    DateTime: { Input: Date; Output: Date };
-    Email: { Input: string; Output: string };
-    UUID: { Input: string; Output: string };
-  };
-}>({
+  DefaultInputFieldRequiredness: true;
+}
+
+/**
+ * The schema builder instance.
+ */
+const builder = new SchemaBuilder<SchemaTypes>({
+  defaultInputFieldRequiredness: true,
   plugins: [
     PrismaPlugin,
     SmartSubscriptionsPlugin,
@@ -60,10 +65,21 @@ const builder = new SchemaBuilder<{
   },
 });
 
+// Add scalars to the schema type
+interface SchemaTypes {
+  Scalars: {
+    DateTime: { Input: Date; Output: Date };
+    Email: { Input: string; Output: string };
+    UUID: { Input: string; Output: string };
+  };
+}
+
+// Add scalars to the schema builder
 builder.addScalarType("DateTime", DateTimeResolver, {});
 builder.addScalarType("Email", EmailAddressResolver, {});
 builder.addScalarType("UUID", UUIDResolver, {});
 
+// Add the query, mutation and subscription types to the schema builder
 builder.queryType();
 builder.mutationType();
 builder.subscriptionType();
