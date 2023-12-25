@@ -1,0 +1,84 @@
+type ContactInfo {
+  email: Email!
+  firstName: String!
+  firstNickname: String
+  lastName: String!
+  lastNickName: String
+}
+
+input CreateOrEditEventInput {
+  closesForRegistrationsAt: DateTime
+  dateTime: DateTime!
+  isPublishedAt: DateTime
+  location: String!
+  opensForRegistrationsAt: DateTime
+  title: String!
+}
+
+"""
+A date-time string at UTC, such as 2007-12-03T10:15:30Z, compliant with the `date-time` format outlined in section 5.6 of the RFC 3339 profile of the ISO 8601 standard for representation of dates and times using the Gregorian calendar.
+"""
+scalar DateTime
+
+"""
+A field whose value conforms to the standard internet email address format as specified in HTML Spec: https://html.spec.whatwg.org/multipage/input.html#valid-e-mail-address.
+"""
+scalar Email
+
+type EmailRegistration {
+  contactInfo: ContactInfo!
+  createdAt: DateTime!
+  email: Email!
+  event: Event!
+  personalInfo: PersonalInfo
+}
+
+type Event {
+  closesForRegistrationsAt: DateTime!
+  createdAt: DateTime!
+  dateTime: DateTime!
+  emailRegistrations: [EmailRegistration!]!
+  id: UUID!
+  isPublishedAt: DateTime!
+  location: String!
+  opensForRegistrationsAt: DateTime!
+  title: String!
+}
+
+type Mutation {
+  createEvent(input: CreateOrEditEventInput!): Event!
+  editEvent(id: UUID!, input: CreateOrEditEventInput!): Event!
+  registerToEventByEmail(input: MutationRegisterToEventByEmailInput!): EmailRegistration!
+}
+
+input MutationRegisterToEventByEmailInput {
+  email: Email!
+  eventId: String!
+  firstName: String!
+  lastName: String!
+}
+
+type PersonalInfo {
+  allergies: [String!]!
+  diet: String!
+  id: String!
+}
+
+type Query {
+  allEvents: [Event!]!
+  eventById(id: UUID!): Event!
+  registrationsByEmail(input: QueryRegistrationsByEmailInput!): [EmailRegistration!]!
+}
+
+input QueryRegistrationsByEmailInput {
+  email: Email!
+}
+
+type Subscription {
+  allEvents: [Event!]!
+}
+
+"""
+A field whose value is a generic Universally Unique Identifier: https://en.wikipedia.org/wiki/Universally_unique_identifier.
+"""
+scalar UUID
