@@ -5,12 +5,11 @@
 import { EmailRegistration } from "@prisma/client";
 import builder from "../builder.ts";
 import { subscribeObjectType } from "../helpers.ts";
-import {
-  ContactInfoInput,
-  contactInfoInputSchema,
-} from "./ContactInfoObject.ts";
+import { ContactInfoInput } from "./ContactInfoObject.ts";
 import { EventObjectType } from "./EventObject.ts";
 import { PersonalInfoInput } from "./PersonalInfoObject.ts";
+import { ERROR_DUPLICATE_REGISTRATION } from "../../model/db/Registrations.ts";
+import { contactInfoInputSchema } from "../validation.ts";
 
 export const EmailRegistrationObjectType = builder.prismaObject(
   "EmailRegistration",
@@ -72,7 +71,7 @@ builder.prismaObjectFields(EventObjectType, (t) => ({
 builder.queryFields((t) => ({
   registrationsByEmail: t.prismaField({
     type: ["EmailRegistration"],
-    smartSubscription: true,
+    smartSubscription: false,
     args: {
       email: t.arg({ type: "Email" }),
     },
@@ -81,7 +80,7 @@ builder.queryFields((t) => ({
   }),
   registrationsByEventId: t.prismaField({
     type: ["EmailRegistration"],
-    smartSubscription: true,
+    smartSubscription: false,
     args: {
       eventId: t.arg({ type: "UUID" }),
     },
@@ -96,7 +95,6 @@ const EmailRegistrationInput = builder.inputType("EmailRegistrationInput", {
     personalInfo: t.field({
       type: PersonalInfoInput,
       required: false,
-      defaultValue: null,
     }),
   }),
 });
@@ -115,7 +113,20 @@ builder.mutationFields((t) => ({
           eventId,
           contactInfoInputSchema.parse(input.contactInfo),
           input.personalInfo === null ? undefined : input.personalInfo,
-        );
+        )
+        .catch((err) => {
+          if (
+            err instanceof Error &&
+            err.cause === ERROR_DUPLICATE_REGISTRATION
+          ) {
+            return Promise.resolve(
+              registrations
+                .injectQueryArgs(query)
+                .findByEventIdAndEmail(eventId, input.contactInfo.email),
+            );
+          }
+          return Promise.reject(err);
+        });
     },
   }),
 }));

@@ -2,11 +2,11 @@
  * @file Configures and exports the `Event` object type.
  */
 
-import { z } from "zod";
 import builder from "../builder.ts";
-import { defaultEventData, isEventValid } from "../../model/events.ts";
+import { defaultEventData } from "../../model/events.ts";
 import { subscribeObjectType } from "../helpers.ts";
 import { Event } from "@prisma/client";
+import { createEventInputSchema } from "../validation.ts";
 
 const subscribe = subscribeObjectType<Event>(
   (event) => event.id,
@@ -33,13 +33,13 @@ export const EventObjectType = builder.prismaObject("Event", {
 builder.queryFields((t) => ({
   allEvents: t.prismaField({
     type: ["Event"],
-    smartSubscription: true,
+    smartSubscription: false,
     resolve: (query, _parent, _args, { events }) =>
       events.injectQueryArgs(query).findAll(),
   }),
   eventById: t.prismaField({
     type: "Event",
-    smartSubscription: true,
+    smartSubscription: false,
     args: {
       eventId: t.arg({ type: "UUID" }),
     },
@@ -47,17 +47,6 @@ builder.queryFields((t) => ({
       events.injectQueryArgs(query).findById(eventId),
   }),
 }));
-
-export const createEventInputSchema = z
-  .object({
-    title: z.string(),
-    location: z.string(),
-    dateTime: z.date(),
-    isPublishedAt: z.date().optional(),
-    opensForRegistrationsAt: z.date().optional(),
-    closesForRegistrationsAt: z.date().optional(),
-  })
-  .refine((data) => isEventValid(defaultEventData(data)));
 
 export const CreateEventInput = builder.inputType("CreateEventInput", {
   fields: (t) => ({
@@ -71,6 +60,20 @@ export const CreateEventInput = builder.inputType("CreateEventInput", {
   validate: {
     schema: createEventInputSchema,
   },
+});
+
+export const EditEventInput = builder.inputType("EditEventInput", {
+  fields: (t) => ({
+    title: t.string({ required: false }),
+    location: t.string({ required: false }),
+    dateTime: t.field({ type: "DateTime", required: false }),
+    isPublishedAt: t.field({ type: "DateTime", required: false }),
+    opensForRegistrationsAt: t.field({ type: "DateTime", required: false }),
+    closesForRegistrationsAt: t.field({ type: "DateTime", required: false }),
+  }),
+  // validate: {
+  //   schema: createEventInputSchema,
+  // },
 });
 
 builder.mutationFields((t) => ({
@@ -88,7 +91,7 @@ builder.mutationFields((t) => ({
     type: "Event",
     args: {
       eventId: t.arg({ type: "UUID" }),
-      input: t.arg({ type: CreateEventInput }),
+      input: t.arg({ type: EditEventInput }),
     },
     resolve: (query, _parent, { eventId, input }, { events }) =>
       events

@@ -2,8 +2,8 @@
  * @file Configures and exports the `ContactInfoObject` object type.
  */
 
-import { z } from "zod";
 import builder from "../builder";
+import { contactInfoInputSchema } from "../validation";
 
 builder.prismaObject("ContactInfo", {
   fields: (t) => ({
@@ -19,14 +19,6 @@ builder.prismaObject("ContactInfo", {
   }),
 });
 
-export const contactInfoInputSchema = z.object({
-  email: z.string().email(),
-  firstName: z.string(),
-  lastName: z.string(),
-  firstNickName: z.string().nullable(),
-  lastNickName: z.string().nullable(),
-});
-
 export const ContactInfoInput = builder.inputType("ContactInfoInput", {
   validate: {
     schema: contactInfoInputSchema,
@@ -38,12 +30,10 @@ export const ContactInfoInput = builder.inputType("ContactInfoInput", {
     firstNickName: t.field({
       type: "String",
       required: false,
-      defaultValue: null,
     }),
     lastNickName: t.field({
       type: "String",
       required: false,
-      defaultValue: null,
     }),
   }),
 });

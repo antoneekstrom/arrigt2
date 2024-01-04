@@ -2,7 +2,6 @@
  * @file Configures and exports the `PersonalInfoObject` object type.
  */
 
-import { z } from "zod";
 import builder from "../builder";
 
 builder.prismaObject("PersonalInfo", {
@@ -10,11 +9,6 @@ builder.prismaObject("PersonalInfo", {
     diet: t.exposeString("diet"),
     allergies: t.exposeStringList("allergies"),
   }),
-});
-
-export const personalInfoInputSchema = z.object({
-  diet: z.string(),
-  allergies: z.string().array(),
 });
 
 export const PersonalInfoInput = builder.inputType("PersonalInfoInput", {
