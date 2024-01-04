@@ -1,29 +1,45 @@
 {
   "compilerOptions": {
-    "lib": [
-      "ESNext"
-    ],
-    "module": "esnext",
-    "target": "esnext",
-    "jsx": "react-jsx",
+    // modules
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
     "moduleResolution": "bundler",
     "moduleDetection": "force",
-    "allowSyntheticDefaultImports": true,
-    "skipLibCheck": true,
-    "downlevelIteration": true,
-    "composite": true,
-    "noEmit": true,
+    "isolatedModules": true,
     "allowImportingTsExtensions": true,
+    "forceConsistentCasingInFileNames": true,
+    // build
+    "lib": [
+      "DOM",
+      "DOM.Iterable",
+      "ES2022"
+    ],
+    "target": "ES2022",
     "allowJs": true,
-    "esModuleInterop": true,
+    // compilation
+    "jsx": "react-jsx",
+    "noEmit": true,
+    "downlevelIteration": true,
+    // type-checking
+    "strict": true,
+    "skipLibCheck": true,
+    "noUncheckedIndexedAccess": true,
     "types": [
       "bun-types",
       "@remix-run/dev",
       "@remix-run/node",
       "@remix-run/express"
-    ],
-    "strict": true,
-    "noUncheckedIndexedAccess": true,
-    "forceConsistentCasingInFileNames": true
-  }
+    ]
+  },
+  "include": [
+    "./src",
+    "./app",
+  ],
+  "files": [
+    "./build/index.js"
+  ],
+  "exclude": [
+    "**/node_modules",
+    "**/.*/"
+  ]
 }
