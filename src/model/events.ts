@@ -2,6 +2,9 @@ import { Event } from "@prisma/client";
 
 export type EventData = Omit<Event, "id" | "createdAt">;
 
+export const ERROR_CLOSING_BEFORE_OPENING =
+  "Event cannot close for registration before opening for registration.";
+
 export function defaultEventData(
   data: Partial<EventData> & Pick<EventData, "title" | "location" | "dateTime">,
 ): EventData {
@@ -39,7 +42,9 @@ export function isEventValid(event: EventData) {
   }
 }
 
-export function assertEventIsValid(event: EventData): asserts event is Event {
+export function assertEventIsValid(
+  event: EventData,
+): asserts event is EventData {
   if (!eventIsPublishedBeforeOpening(event)) {
     throw new Error(
       "Event cannot open for registration before being published.",
@@ -57,9 +62,7 @@ export function assertEventIsValid(event: EventData): asserts event is Event {
   }
 
   if (!eventIsOpeningBeforeClosing(event)) {
-    throw new Error(
-      "Event cannot close for registration before opening for registration.",
-    );
+    throw new Error(ERROR_CLOSING_BEFORE_OPENING);
   }
 
   if (!eventIsOpeningBeforeStarting(event)) {
