@@ -1,6 +1,8 @@
 import { ContactInfo, PersonalInfo } from "@prisma/client";
 import { PrismaDelegate } from "../../prisma";
 
+export const ERROR_DUPLICATE_REGISTRATION = "DUPLICATE_REGISTRATION";
+
 export class Registrations extends PrismaDelegate {
   /**
    *
@@ -72,11 +74,20 @@ export class Registrations extends PrismaDelegate {
    * @param personalInfo
    * @returns
    */
-  createForEventById(
+  async createForEventById(
     eventId: string,
     contactInfo: Omit<ContactInfo, "id">,
     personalInfo?: Omit<PersonalInfo, "id">,
   ) {
+    if (await this.existsForIdAndEmail(eventId, contactInfo.email)) {
+      console.error(
+        `Tried to create duplicate registration for ${eventId} with email ${contactInfo.email}.`,
+      );
+      throw new Error("Registration already exists for this email", {
+        cause: ERROR_DUPLICATE_REGISTRATION,
+      });
+    }
+
     // Creates an email registration, contacts and personal info, and connects to an event by id
     return this.prisma.emailRegistration.create({
       data: {
