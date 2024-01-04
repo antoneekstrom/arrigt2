@@ -6,7 +6,15 @@ type ContactInfo {
   lastNickName: String
 }
 
-input CreateOrEditEventInput {
+input ContactInfoInput {
+  email: Email!
+  firstName: String!
+  firstNickName: String
+  lastName: String!
+  lastNickName: String
+}
+
+input CreateEventInput {
   closesForRegistrationsAt: DateTime
   dateTime: DateTime!
   isPublishedAt: DateTime
@@ -27,55 +35,52 @@ scalar Email
 
 type EmailRegistration {
   contactInfo: ContactInfo!
-  createdAt: DateTime!
-  email: Email!
   event: Event!
-  personalInfo: PersonalInfo
+}
+
+input EmailRegistrationInput {
+  contactInfo: ContactInfoInput!
+  personalInfo: PersonalInfoInput
 }
 
 type Event {
+  allergies: [String!]!
   closesForRegistrationsAt: DateTime!
-  createdAt: DateTime!
   dateTime: DateTime!
-  emailRegistrations: [EmailRegistration!]!
+  diets: [String!]!
   id: UUID!
   isPublishedAt: DateTime!
   location: String!
   opensForRegistrationsAt: DateTime!
+  registrationCount: Int!
+  registrations: [EmailRegistration!]!
   title: String!
 }
 
 type Mutation {
-  createEvent(input: CreateOrEditEventInput!): Event!
-  editEvent(id: UUID!, input: CreateOrEditEventInput!): Event!
-  registerToEventByEmail(input: MutationRegisterToEventByEmailInput!): EmailRegistration!
-}
-
-input MutationRegisterToEventByEmailInput {
-  email: Email!
-  eventId: String!
-  firstName: String!
-  lastName: String!
+  createEvent(input: CreateEventInput!): Event!
+  editEvent(eventId: UUID!, input: CreateEventInput!): Event!
+  registerByEmail(
+    eventId: UUID!
+    input: EmailRegistrationInput!
+  ): EmailRegistration!
 }
 
 type PersonalInfo {
   allergies: [String!]!
   diet: String!
-  id: String!
+}
+
+input PersonalInfoInput {
+  allergies: [String!]!
+  diet: String!
 }
 
 type Query {
   allEvents: [Event!]!
-  eventById(id: UUID!): Event!
-  registrationsByEmail(input: QueryRegistrationsByEmailInput!): [EmailRegistration!]!
-}
-
-input QueryRegistrationsByEmailInput {
-  email: Email!
-}
-
-type Subscription {
-  allEvents: [Event!]!
+  eventById(eventId: UUID!): Event!
+  registrationsByEmail(email: Email!): [EmailRegistration!]!
+  registrationsByEventId(eventId: UUID!): [EmailRegistration!]!
 }
 
 """
