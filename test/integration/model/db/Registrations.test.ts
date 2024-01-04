@@ -4,8 +4,8 @@ import { defaultEventData } from "../../../../src/model/events";
 import prisma from "../../../../src/prisma";
 import { Registrations } from "../../../../src/model/db/Registrations";
 import { z } from "zod";
-import { contactInfoInputSchema } from "../../../../src/schema/objects/ContactInfoObject";
 import { UUIDMock } from "graphql-scalars";
+import { contactInfoInputSchema } from "../../../../src/schema/validation";
 
 describe("EmailRegistrations", () => {
   const events = new Events(prisma);
