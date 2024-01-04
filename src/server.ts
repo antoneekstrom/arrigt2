@@ -15,8 +15,8 @@ export default function serve() {
 
   const httpServer = createHttpServer(app);
 
-  addRemixRequestHandler(app);
   addYogaRequestHandler(app);
+  addRemixRequestHandler(app);
 
   start(httpServer);
 }
@@ -33,7 +33,7 @@ function addYogaRequestHandler(app: Express) {
  */
 function addRemixRequestHandler(app: Express) {
   app.use(express.static("public"));
-  app.all("/", remixRequestHandler);
+  app.all("*", remixRequestHandler);
 }
 
 function start(httpServer: Server) {
