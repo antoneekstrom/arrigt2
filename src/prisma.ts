@@ -3,19 +3,22 @@
  */
 
 import { Prisma, PrismaClient } from "@prisma/client";
-import { DynamicClientExtensionThis } from "@prisma/client/runtime/library";
 import { PubSub } from "./yoga";
+import {
+  DefaultArgs,
+  PrismaClientInitializationError,
+  PrismaClientOptions,
+} from "@prisma/client/runtime/library";
+import { GraphQLError } from "graphql";
 
 /**
  * Can be either a PrismaClient or a PrismaClient with extensions.
  */
-type AnyPrismaClient =
-  | PrismaClient
-  | DynamicClientExtensionThis<
-      Prisma.TypeMap,
-      Prisma.TypeMapCb,
-      Record<string, unknown>
-    >;
+export type AnyPrismaClient = PrismaClient<
+  PrismaClientOptions,
+  unknown,
+  DefaultArgs
+>;
 
 /**
  * Prisma client singleton instance.
@@ -55,23 +58,13 @@ export function injectQueryArgsExtension(extra: {
  */
 export function createSubscriptionEventString(
   model: string,
-  operation: MutationOperation,
+  operation: string,
   id?: string,
 ) {
   return id ? `${model}/${operation}/${id}` : `${model}/${operation}`;
 }
 
-type MutationOperation =
-  | "create"
-  | "update"
-  | "delete"
-  | "createMany"
-  | "updateMany"
-  | "deleteMany";
-
-function isMutationOperation(
-  operation: string,
-): operation is MutationOperation {
+function isMutatingOperation(operation: string): boolean {
   return ["create", "update", "delete"].some((op) => operation.includes(op));
 }
 
@@ -91,9 +84,16 @@ export function pubsubExtension(pubsub: PubSub) {
         }
 
         // Execute query before publishing event, so subscribers can refetch the new data
-        const result = await query(args);
+        const result = await query(args).catch((err) => {
+          if (err instanceof PrismaClientInitializationError) {
+            return Promise.reject(
+              new GraphQLError("Could not connect to database."),
+            );
+          }
+          return Promise.reject(err);
+        });
 
-        if (isMutationOperation(operation)) {
+        if (isMutatingOperation(operation)) {
           const event = createSubscriptionEventString(
             model,
             operation,
@@ -127,7 +127,9 @@ export class PrismaDelegate {
    */
   injectQueryArgs(args: Parameters<typeof injectQueryArgsExtension>[0]) {
     const ctor = this.constructor as DelegateConstructor<this>;
-    return new ctor(this.prisma.$extends(injectQueryArgsExtension(args)));
+    return new ctor(
+      this.prisma.$extends(injectQueryArgsExtension(args)) as AnyPrismaClient,
+    );
   }
 }
 
