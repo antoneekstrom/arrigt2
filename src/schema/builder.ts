@@ -82,6 +82,6 @@ builder.addScalarType("UUID", UUIDResolver, {});
 // Add the query, mutation and subscription types to the schema builder
 builder.queryType();
 builder.mutationType();
-builder.subscriptionType();
+// builder.subscriptionType();
 
 export default builder;
