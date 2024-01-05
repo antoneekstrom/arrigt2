@@ -75,7 +75,7 @@ export default function ManageEventPage() {
     return <div>Something went wrong</div>;
   }
 
-  const isOpen = data.eventById.isOpen;
+  const { isOpen } = data.eventById;
 
   return (
     <div>

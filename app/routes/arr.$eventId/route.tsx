@@ -38,6 +38,9 @@ const loaderQuery = gql(`
         dateTime
         closesForRegistrationsAt
         opensForRegistrationsAt
+        isOpen
+        hasClosed
+        hasOpened
       }
     }
   `);
@@ -67,17 +70,6 @@ export default function EventPage() {
   const isLoading = fetcher.state !== "idle";
   const responseErrors = JSON.stringify(lastSubmission?.error, null, 2);
 
-  const closesAt = new Date(
-    Date.parse(data?.eventById.closesForRegistrationsAt || ""),
-  );
-  const opensAt = new Date(
-    Date.parse(data?.eventById.opensForRegistrationsAt || ""),
-  );
-
-  const hasClosed = closesAt.getTime() < Date.now();
-  const hasOpened = opensAt.getTime() < Date.now();
-  const isOpen = hasOpened && !hasClosed;
-
   const [form, { input }] = useForm({
     lastSubmission,
     shouldValidate: "onBlur",
@@ -88,6 +80,12 @@ export default function EventPage() {
 
   const { contactInfo } = useFieldset(form.ref, input);
   const contactFields = useFieldset(form.ref, contactInfo);
+
+  if (!data) {
+    return null;
+  }
+
+  const { hasClosed, hasOpened, isOpen } = data.eventById;
 
   return (
     <div>
@@ -140,23 +138,34 @@ export default function EventPage() {
               </span>
             )}
           </div>
-          <div>
-            This event closes for registrations on {closesAt.toDateString()}.
-          </div>
+          {data.eventById.closesForRegistrationsAt && (
+            <div>
+              This event closes for registrations on{" "}
+              {new Date(data.eventById.closesForRegistrationsAt).toDateString()}
+              .
+            </div>
+          )}
         </fetcher.Form>
       )}
       {!hasOpened && !hasClosed && (
         <div>
           <p>Registrations are closed.</p>
-          <p>This event opens for registrations on {opensAt.toDateString()}.</p>
+          <p>
+            This event opens for registrations on{" "}
+            {new Date(data.eventById.opensForRegistrationsAt).toDateString()}.
+          </p>
         </div>
       )}
       {hasClosed && (
         <div>
           <p>Registrations are closed.</p>
-          <p>
-            This event closed for registrations on {closesAt.toDateString()}.
-          </p>
+          {data.eventById.closesForRegistrationsAt && (
+            <p>
+              This event closed for registrations on{" "}
+              {new Date(data.eventById.closesForRegistrationsAt).toDateString()}
+              .
+            </p>
+          )}
         </div>
       )}
     </div>
