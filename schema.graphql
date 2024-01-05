@@ -28,6 +28,15 @@ A date-time string at UTC, such as 2007-12-03T10:15:30Z, compliant with the `dat
 """
 scalar DateTime
 
+input EditEventInput {
+  closesForRegistrationsAt: DateTime
+  dateTime: DateTime
+  isPublishedAt: DateTime
+  location: String
+  opensForRegistrationsAt: DateTime
+  title: String
+}
+
 """
 A field whose value conforms to the standard internet email address format as specified in HTML Spec: https://html.spec.whatwg.org/multipage/input.html#valid-e-mail-address.
 """
@@ -45,10 +54,13 @@ input EmailRegistrationInput {
 
 type Event {
   allergies: [String!]!
-  closesForRegistrationsAt: DateTime!
+  closesForRegistrationsAt: DateTime
   dateTime: DateTime!
   diets: [String!]!
+  hasClosed: Boolean!
+  hasOpened: Boolean!
   id: UUID!
+  isOpen: Boolean!
   isPublishedAt: DateTime!
   location: String!
   opensForRegistrationsAt: DateTime!
@@ -58,12 +70,11 @@ type Event {
 }
 
 type Mutation {
+  closeEvent(eventId: UUID!): Event!
   createEvent(input: CreateEventInput!): Event!
-  editEvent(eventId: UUID!, input: CreateEventInput!): Event!
-  registerByEmail(
-    eventId: UUID!
-    input: EmailRegistrationInput!
-  ): EmailRegistration!
+  editEvent(eventId: UUID!, input: EditEventInput!): Event!
+  openEvent(eventId: UUID!): Event!
+  registerByEmail(eventId: UUID!, input: EmailRegistrationInput!): EmailRegistration!
 }
 
 type PersonalInfo {

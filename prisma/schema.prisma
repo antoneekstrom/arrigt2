@@ -21,10 +21,10 @@ model Event {
   dateTime DateTime
   location String
 
-  createdAt                DateTime @default(now())
-  isPublishedAt            DateTime @default(now())
-  opensForRegistrationsAt  DateTime @default(now())
-  closesForRegistrationsAt DateTime @default(now())
+  createdAt                DateTime  @default(now())
+  isPublishedAt            DateTime  @default(now())
+  opensForRegistrationsAt  DateTime  @default(now())
+  closesForRegistrationsAt DateTime?
 }
 
 /// Represents a person that has registered to an event by email.
