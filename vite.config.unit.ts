@@ -6,11 +6,16 @@ import { defineConfig } from "vitest/config";
 export default defineConfig({
   test: {
     include: ["src/**/*.test.ts", "app/**/*.test.ts"],
-    reporters: process.env.CI ? ["json", "html"] : [],
+    reporters: process.env.CI ? ["json"] : [],
     outputFile: {
       json: "reports/unit/unit.json",
-      html: "reports/unit/index.html",
+      // html: "reports/unit/index.html",
     },
     passWithNoTests: false,
+    coverage: {
+      reporter: ["json", "json-summary"],
+      reportOnFailure: true,
+      reportsDirectory: "reports/unit/coverage",
+    },
   },
 });

@@ -9,10 +9,15 @@ export default defineConfig({
     include: ["test/integration/**/*.test.ts"],
     setupFiles: ["test/integration/setup.ts"],
     threads: false,
-    reporters: process.env.CI ? ["json", "html"] : [],
+    reporters: process.env.CI ? ["json"] : [],
     outputFile: {
       json: "reports/integration/integration.json",
-      html: "reports/integration/index.html",
+      // html: "reports/integration/index.html",
+    },
+    coverage: {
+      reporter: ["json", "json-summary"],
+      reportOnFailure: true,
+      reportsDirectory: "reports/integration/coverage",
     },
   },
 });

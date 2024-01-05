@@ -19,3 +19,11 @@ jobs:
           name: unit-report
           path: reports/unit/
           retention-days: 5
+      - name: Report Coverage
+        uses: davelosert/vitest-coverage-report-action@v2
+        if: always()
+        with:
+          json-summary-path: ./reports/unit/coverage/coverage-summary.json
+          json-final-path: ./reports/unit/coverage/coverage-final.json
+          vite-config-path: ./vite.config.unit.ts
+          file-coverage-mode: changes
