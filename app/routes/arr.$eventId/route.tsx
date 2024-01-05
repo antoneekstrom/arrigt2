@@ -73,7 +73,10 @@ export default function EventPage() {
   const opensAt = new Date(
     Date.parse(data?.eventById.opensForRegistrationsAt || ""),
   );
-  const isOpen = opensAt.getTime() < Date.now();
+
+  const hasClosed = closesAt.getTime() < Date.now();
+  const hasOpened = opensAt.getTime() < Date.now();
+  const isOpen = hasOpened && !hasClosed;
 
   const [form, { input }] = useForm({
     lastSubmission,
@@ -89,13 +92,14 @@ export default function EventPage() {
   return (
     <div>
       <Link to="/">Back to events</Link>
+      <Link to="manage">Manage event</Link>
       <h1>{data?.eventById.title}</h1>
       <h2>{data?.eventById.location}</h2>
       {data?.eventById.dateTime && (
         <h2>{new Date(Date.parse(data?.eventById.dateTime)).toDateString()}</h2>
       )}
 
-      {isOpen ? (
+      {isOpen && (
         <fetcher.Form method="post" autoComplete="off" {...form.props}>
           <div>
             <label htmlFor={contactFields.email.id}>Email</label>
@@ -140,9 +144,19 @@ export default function EventPage() {
             This event closes for registrations on {closesAt.toDateString()}.
           </div>
         </fetcher.Form>
-      ) : (
+      )}
+      {!hasOpened && !hasClosed && (
         <div>
-          This event opens for registrations on {opensAt.toDateString()}.
+          <p>Registrations are closed.</p>
+          <p>This event opens for registrations on {opensAt.toDateString()}.</p>
+        </div>
+      )}
+      {hasClosed && (
+        <div>
+          <p>Registrations are closed.</p>
+          <p>
+            This event closed for registrations on {closesAt.toDateString()}.
+          </p>
         </div>
       )}
     </div>
