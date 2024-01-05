@@ -33,6 +33,29 @@ export function hasEventOpened(
   return now >= event.opensForRegistrationsAt;
 }
 
+export function hasEventClosed(
+  event: Pick<Event, "closesForRegistrationsAt">,
+  now = new Date(Date.now()),
+) {
+  return !event.closesForRegistrationsAt
+    ? false
+    : now >= event.closesForRegistrationsAt;
+}
+
+export function isEventOpen(
+  event: Pick<
+    Event,
+    "isPublishedAt" | "opensForRegistrationsAt" | "closesForRegistrationsAt"
+  >,
+  now = new Date(Date.now()),
+) {
+  return (
+    isEventPublished(event, now) &&
+    hasEventOpened(event, now) &&
+    !hasEventClosed(event, now)
+  );
+}
+
 export function isEventValid(event: EventData) {
   try {
     assertEventIsValid(event);

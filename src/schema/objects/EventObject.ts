@@ -3,10 +3,16 @@
  */
 
 import builder from "../builder.ts";
-import { defaultEventData } from "../../model/events.ts";
+import {
+  defaultEventData,
+  hasEventClosed,
+  hasEventOpened,
+  isEventOpen,
+} from "../../model/events.ts";
 import { subscribeObjectType } from "../helpers.ts";
 import { Event } from "@prisma/client";
 import { createEventInputSchema } from "../validation.ts";
+import { now } from "../../common/dateTime.ts";
 
 const subscribe = subscribeObjectType<Event>(
   (event) => event.id,
@@ -26,6 +32,19 @@ export const EventObjectType = builder.prismaObject("Event", {
     }),
     closesForRegistrationsAt: t.expose("closesForRegistrationsAt", {
       type: "DateTime",
+      nullable: true,
+    }),
+    isOpen: t.field({
+      type: "Boolean",
+      resolve: (event) => isEventOpen(event),
+    }),
+    hasClosed: t.field({
+      type: "Boolean",
+      resolve: (event) => hasEventClosed(event),
+    }),
+    hasOpened: t.field({
+      type: "Boolean",
+      resolve: (event) => hasEventOpened(event),
     }),
   }),
 });
@@ -100,5 +119,26 @@ builder.mutationFields((t) => ({
           eventId,
           defaultEventData(createEventInputSchema.parse(input)),
         ),
+  }),
+  closeEvent: t.prismaField({
+    type: "Event",
+    args: {
+      eventId: t.arg({ type: "UUID" }),
+    },
+    resolve: (query, _parent, { eventId }, { events }) =>
+      events.injectQueryArgs(query).updateById(eventId, {
+        closesForRegistrationsAt: now(),
+      }),
+  }),
+  openEvent: t.prismaField({
+    type: "Event",
+    args: {
+      eventId: t.arg({ type: "UUID" }),
+    },
+    resolve: (query, _parent, { eventId }, { events }) =>
+      events.injectQueryArgs(query).updateById(eventId, {
+        opensForRegistrationsAt: now(),
+        closesForRegistrationsAt: null,
+      }),
   }),
 }));
