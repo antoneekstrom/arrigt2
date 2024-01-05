@@ -23,8 +23,11 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - uses: oven-sh/setup-bun@v1
+      - uses: falti/dotenv-action@v1.0.4
       - name: Install Dependencies
         run: bun install
+      - name: Migrate Database
+        run: bun migrate:dev
       - name: Test
         run: bun test:integration
       - name: Upload Report
