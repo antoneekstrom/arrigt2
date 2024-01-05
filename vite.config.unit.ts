@@ -6,7 +6,7 @@ import { defineConfig } from "vitest/config";
 export default defineConfig({
   test: {
     include: ["src/**/*.test.ts", "app/**/*.test.ts"],
-    reporters: process.env.CI ? ["json"] : [],
+    reporters: ["json", "default"],
     outputFile: {
       json: "reports/unit/unit.json",
       // html: "reports/unit/index.html",

@@ -9,7 +9,7 @@ export default defineConfig({
     include: ["test/integration/**/*.test.ts"],
     setupFiles: ["test/integration/setup.ts"],
     threads: false,
-    reporters: process.env.CI ? ["json"] : [],
+    reporters: ["json", "default"],
     outputFile: {
       json: "reports/integration/integration.json",
       // html: "reports/integration/index.html",
