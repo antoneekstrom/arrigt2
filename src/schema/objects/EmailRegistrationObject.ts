@@ -106,27 +106,28 @@ builder.mutationFields((t) => ({
       eventId: t.arg({ type: "UUID" }),
       input: t.arg({ type: EmailRegistrationInput }),
     },
-    resolve: (query, _parent, { eventId, input }, { registrations }) => {
-      return registrations
-        .injectQueryArgs(query)
-        .createForEventById(
-          eventId,
-          contactInfoInputSchema.parse(input.contactInfo),
-          input.personalInfo === null ? undefined : input.personalInfo,
-        )
-        .catch((err) => {
-          if (
-            err instanceof Error &&
-            err.cause === ERROR_DUPLICATE_REGISTRATION
-          ) {
-            return Promise.resolve(
-              registrations
-                .injectQueryArgs(query)
-                .findByEventIdAndEmail(eventId, input.contactInfo.email),
-            );
-          }
-          return Promise.reject(err);
-        });
+    resolve: async (query, _parent, { eventId, input }, { registrations }) => {
+      try {
+        return await registrations
+          .injectQueryArgs(query)
+          .createForEventById(
+            eventId,
+            contactInfoInputSchema.parse(input.contactInfo),
+            input.personalInfo === null ? undefined : input.personalInfo,
+          );
+      } catch (err) {
+        if (
+          err instanceof Error &&
+          err.cause === ERROR_DUPLICATE_REGISTRATION
+        ) {
+          return Promise.resolve(
+            registrations
+              .injectQueryArgs(query)
+              .findByEventIdAndEmail(eventId, input.contactInfo.email),
+          );
+        }
+        return await Promise.reject(err);
+      }
     },
   }),
 }));
