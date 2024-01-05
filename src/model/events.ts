@@ -26,7 +26,7 @@ export function isEventPublished(
   return now >= event.isPublishedAt;
 }
 
-export function isEventOpen(
+export function hasEventOpened(
   event: Pick<Event, "opensForRegistrationsAt">,
   now = new Date(Date.now()),
 ) {
@@ -45,67 +45,76 @@ export function isEventValid(event: EventData) {
 export function assertEventIsValid(
   event: EventData,
 ): asserts event is EventData {
-  if (!eventIsPublishedBeforeOpening(event)) {
+  if (!isEventPublishedBeforeOpening(event)) {
     throw new Error(
       "Event cannot open for registration before being published.",
     );
   }
 
-  if (!eventIsPublishedBeforeClosing(event)) {
+  if (!isEventPublishedBeforeClosing(event)) {
     throw new Error(
       "Event cannot close for registration before being published.",
     );
   }
 
-  if (!eventIsPublishedBeforeStarting(event)) {
+  if (!isEventPublishedBeforeStarting(event)) {
     throw new Error("Event cannot start before being published.");
   }
 
-  if (!eventIsOpeningBeforeClosing(event)) {
+  if (!isEventOpeningBeforeClosing(event)) {
     throw new Error(ERROR_CLOSING_BEFORE_OPENING);
   }
 
-  if (!eventIsOpeningBeforeStarting(event)) {
+  if (!isEventOpeningBeforeStarting(event)) {
     throw new Error("Event cannot start before opening for registration.");
   }
 
-  if (!eventIsStartingBeforeClosing(event)) {
+  if (!isEventStartingBeforeClosing(event)) {
     throw new Error("Event cannot close for registration before starting.");
   }
 }
 
-export function eventIsPublishedBeforeOpening(
+export function isEventPublishedBeforeOpening(
   event: Pick<Event, "opensForRegistrationsAt" | "isPublishedAt">,
 ) {
   return event.isPublishedAt <= event.opensForRegistrationsAt;
 }
 
-export function eventIsPublishedBeforeClosing(
+export function isEventPublishedBeforeClosing(
   event: Pick<Event, "isPublishedAt" | "closesForRegistrationsAt">,
 ) {
-  return event.isPublishedAt < event.closesForRegistrationsAt;
+  return (
+    !event.closesForRegistrationsAt ||
+    event.isPublishedAt < event.closesForRegistrationsAt
+  );
 }
 
-export function eventIsPublishedBeforeStarting(
+export function isEventPublishedBeforeStarting(
   event: Pick<Event, "isPublishedAt" | "dateTime">,
 ) {
   return event.isPublishedAt <= event.dateTime;
 }
 
-export function eventIsOpeningBeforeClosing(
+export function isEventOpeningBeforeClosing(
   event: Pick<Event, "closesForRegistrationsAt" | "opensForRegistrationsAt">,
 ) {
-  return event.closesForRegistrationsAt > event.opensForRegistrationsAt;
+  return (
+    !event.closesForRegistrationsAt ||
+    event.closesForRegistrationsAt > event.opensForRegistrationsAt
+  );
 }
 
-export function eventIsOpeningBeforeStarting(
+export function isEventOpeningBeforeStarting(
   event: Pick<Event, "opensForRegistrationsAt" | "dateTime">,
 ) {
   return event.opensForRegistrationsAt <= event.dateTime;
 }
 
-export function eventIsStartingBeforeClosing(
+export function isEventStartingBeforeClosing(
   event: Pick<Event, "dateTime" | "closesForRegistrationsAt">,
 ) {
-  return event.dateTime <= event.closesForRegistrationsAt;
+  return (
+    !event.closesForRegistrationsAt ||
+    event.dateTime <= event.closesForRegistrationsAt
+  );
 }

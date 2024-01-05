@@ -1,9 +1,9 @@
 import { z } from "zod";
 import {
-  eventIsOpeningBeforeClosing,
+  isEventOpeningBeforeClosing,
   defaultEventData,
   ERROR_CLOSING_BEFORE_OPENING,
-  eventIsStartingBeforeClosing,
+  isEventStartingBeforeClosing,
   isEventValid,
 } from "../model/events";
 
@@ -29,11 +29,11 @@ export const createEventInputSchema = z
     opensForRegistrationsAt: z.date().optional(),
     closesForRegistrationsAt: z.date().optional(),
   })
-  .refine((data) => eventIsOpeningBeforeClosing(defaultEventData(data)), {
+  .refine((data) => isEventOpeningBeforeClosing(defaultEventData(data)), {
     message: ERROR_CLOSING_BEFORE_OPENING,
     path: ["closesForRegistrationsAt"],
   })
-  .refine((data) => eventIsStartingBeforeClosing(defaultEventData(data)), {
+  .refine((data) => isEventStartingBeforeClosing(defaultEventData(data)), {
     message: "Event cannot start before closing for registration.",
     path: ["dateTime"],
   })

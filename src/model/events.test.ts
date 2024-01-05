@@ -3,7 +3,7 @@ import { describe, it } from "vitest";
 import {
   assertEventIsValid,
   defaultEventData,
-  eventIsPublishedBeforeOpening,
+  isEventPublishedBeforeOpening,
 } from "./events";
 import { inOneDay, inOneWeek, oneDayAgo, oneWeekAgo } from "../common/dateTime";
 
@@ -38,19 +38,19 @@ describe("Event date constraints", () => {
 
   it("Should be published before opening.", () => {
     expect(
-      eventIsPublishedBeforeOpening({
+      isEventPublishedBeforeOpening({
         isPublishedAt: yesterday,
         opensForRegistrationsAt: tomorrow,
       }),
     ).toBe(true);
     expect(
-      eventIsPublishedBeforeOpening({
+      isEventPublishedBeforeOpening({
         isPublishedAt: tomorrow,
         opensForRegistrationsAt: tomorrow,
       }),
     ).toBe(true);
     expect(
-      eventIsPublishedBeforeOpening({
+      isEventPublishedBeforeOpening({
         isPublishedAt: tomorrow,
         opensForRegistrationsAt: today,
       }),
@@ -59,19 +59,19 @@ describe("Event date constraints", () => {
 
   it("Should be published before closing.", () => {
     expect(
-      eventIsPublishedBeforeOpening({
+      isEventPublishedBeforeOpening({
         isPublishedAt: yesterday,
         opensForRegistrationsAt: tomorrow,
       }),
     ).toBe(true);
     expect(
-      eventIsPublishedBeforeOpening({
+      isEventPublishedBeforeOpening({
         isPublishedAt: tomorrow,
         opensForRegistrationsAt: tomorrow,
       }),
     ).toBe(true);
     expect(
-      eventIsPublishedBeforeOpening({
+      isEventPublishedBeforeOpening({
         isPublishedAt: tomorrow,
         opensForRegistrationsAt: today,
       }),
@@ -80,19 +80,19 @@ describe("Event date constraints", () => {
 
   it("Should be published before starting.", () => {
     expect(
-      eventIsPublishedBeforeOpening({
+      isEventPublishedBeforeOpening({
         isPublishedAt: yesterday,
         opensForRegistrationsAt: tomorrow,
       }),
     ).toBe(true);
     expect(
-      eventIsPublishedBeforeOpening({
+      isEventPublishedBeforeOpening({
         isPublishedAt: tomorrow,
         opensForRegistrationsAt: tomorrow,
       }),
     ).toBe(true);
     expect(
-      eventIsPublishedBeforeOpening({
+      isEventPublishedBeforeOpening({
         isPublishedAt: tomorrow,
         opensForRegistrationsAt: today,
       }),
@@ -101,19 +101,19 @@ describe("Event date constraints", () => {
 
   it("Should be opening before closing.", () => {
     expect(
-      eventIsPublishedBeforeOpening({
+      isEventPublishedBeforeOpening({
         isPublishedAt: yesterday,
         opensForRegistrationsAt: tomorrow,
       }),
     ).toBe(true);
     expect(
-      eventIsPublishedBeforeOpening({
+      isEventPublishedBeforeOpening({
         isPublishedAt: tomorrow,
         opensForRegistrationsAt: tomorrow,
       }),
     ).toBe(true);
     expect(
-      eventIsPublishedBeforeOpening({
+      isEventPublishedBeforeOpening({
         isPublishedAt: tomorrow,
         opensForRegistrationsAt: today,
       }),
@@ -122,19 +122,19 @@ describe("Event date constraints", () => {
 
   it("Should be opening before starting.", () => {
     expect(
-      eventIsPublishedBeforeOpening({
+      isEventPublishedBeforeOpening({
         isPublishedAt: yesterday,
         opensForRegistrationsAt: tomorrow,
       }),
     ).toBe(true);
     expect(
-      eventIsPublishedBeforeOpening({
+      isEventPublishedBeforeOpening({
         isPublishedAt: tomorrow,
         opensForRegistrationsAt: tomorrow,
       }),
     ).toBe(true);
     expect(
-      eventIsPublishedBeforeOpening({
+      isEventPublishedBeforeOpening({
         isPublishedAt: tomorrow,
         opensForRegistrationsAt: today,
       }),
@@ -143,19 +143,19 @@ describe("Event date constraints", () => {
 
   it("Should be starting before closing.", () => {
     expect(
-      eventIsPublishedBeforeOpening({
+      isEventPublishedBeforeOpening({
         isPublishedAt: yesterday,
         opensForRegistrationsAt: tomorrow,
       }),
     ).toBe(true);
     expect(
-      eventIsPublishedBeforeOpening({
+      isEventPublishedBeforeOpening({
         isPublishedAt: tomorrow,
         opensForRegistrationsAt: tomorrow,
       }),
     ).toBe(true);
     expect(
-      eventIsPublishedBeforeOpening({
+      isEventPublishedBeforeOpening({
         isPublishedAt: tomorrow,
         opensForRegistrationsAt: today,
       }),
