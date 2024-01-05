@@ -6,6 +6,20 @@ on:
 jobs:
   run-integration-test:
     runs-on: ubuntu-latest
+    services:
+      db:
+        image: postgres
+        env:
+          POSTGRES_DB: arrigt
+          POSTGRES_USER: arrigt
+          POSTGRES_PASSWORD: plupp123
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
     steps:
       - uses: actions/checkout@v3
       - uses: oven-sh/setup-bun@v1
