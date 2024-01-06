@@ -1,5 +1,6 @@
 import { ContactInfo, PersonalInfo } from "@prisma/client";
 import { PrismaDelegate } from "../../prisma";
+import { isEventOpen } from "../events";
 
 export const ERROR_DUPLICATE_REGISTRATION = "DUPLICATE_REGISTRATION";
 
@@ -79,13 +80,52 @@ export class Registrations extends PrismaDelegate {
     contactInfo: Omit<ContactInfo, "id">,
     personalInfo?: Omit<PersonalInfo, "id">,
   ) {
-    if (await this.existsForIdAndEmail(eventId, contactInfo.email)) {
-      console.error(
-        `Tried to create duplicate registration for ${eventId} with email ${contactInfo.email}.`,
-      );
-      throw new Error("Registration already exists for this email", {
+    const event = await this.prisma.event.findUnique({
+      where: {
+        id: eventId,
+      },
+      select: {
+        isPublishedAt: true,
+        closesForRegistrationsAt: true,
+        opensForRegistrationsAt: true,
+        emailRegistrations: {
+          where: {
+            contactInfo: {
+              email: contactInfo.email,
+            },
+          },
+          select: {
+            contactInfo: {
+              select: {
+                email: true,
+              },
+            },
+          },
+        },
+      },
+    });
+
+    if (event === null) {
+      const errorMessage = `Could not find event with id ${eventId}.`;
+      console.error(errorMessage);
+      throw new Error(errorMessage);
+    }
+
+    if (
+      event?.emailRegistrations !== undefined &&
+      event.emailRegistrations.length > 0
+    ) {
+      const errorMessage = `Could not create duplicate registration for ${eventId} with email ${contactInfo.email}.`;
+      console.error(errorMessage);
+      throw new Error(errorMessage, {
         cause: ERROR_DUPLICATE_REGISTRATION,
       });
+    }
+
+    if (!isEventOpen(event)) {
+      const errorMessage = `Could not create registration for ${eventId} with email ${contactInfo.email} because the event is not open.`;
+      console.error(errorMessage);
+      throw new Error(errorMessage);
     }
 
     // Creates an email registration, contacts and personal info, and connects to an event by id
