@@ -1,9 +1,23 @@
 import { Event } from "@prisma/client";
+import { now } from "../common/dateTime";
 
 export type EventData = Omit<Event, "id" | "createdAt">;
 
 export const ERROR_CLOSING_BEFORE_OPENING =
   "Event cannot close for registration before opening for registration.";
+
+export function closeEvent() {
+  return {
+    closesForRegistrationsAt: now(),
+  };
+}
+
+export function openEvent() {
+  return {
+    opensForRegistrationsAt: now(),
+    closesForRegistrationsAt: null,
+  };
+}
 
 export function defaultEventData(
   data: Partial<EventData> & Pick<EventData, "title" | "location" | "dateTime">,
