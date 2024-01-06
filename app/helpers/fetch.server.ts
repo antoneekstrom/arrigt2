@@ -3,6 +3,11 @@ import { yogaRequestHandler } from "../../src/yoga";
 import { TypedDocumentNode } from "@graphql-typed-document-node/core";
 import { ExecutionResult } from "graphql";
 
+export interface SuccessfulExecutionResult<T> extends ExecutionResult<T> {
+  data: T;
+  errors: undefined;
+}
+
 const executor = buildHTTPExecutor({
   fetch: yogaRequestHandler.fetch,
 });
@@ -19,15 +24,16 @@ export async function fetchQuery<
 >(
   document: TypedDocumentNode<TResult, TVariables>,
   variables?: TVariables,
-): Promise<ExecutionResult<TResult>> {
-  const response = await executor({
+): Promise<SuccessfulExecutionResult<TResult>> {
+  const result = await executor({
     document,
     variables,
   });
 
-  assertSingleValue(response);
+  assertSingleValue(result);
+  assertSuccessfulResult(result);
 
-  return response;
+  return result;
 }
 
 export function isAsyncIterable<T extends object>(
@@ -41,5 +47,13 @@ export function assertSingleValue<T extends object>(
 ): asserts value is T {
   if (isAsyncIterable(value)) {
     throw new Error("Expected single value.");
+  }
+}
+
+export function assertSuccessfulResult<T>(
+  result: ExecutionResult<T>,
+): asserts result is SuccessfulExecutionResult<T> {
+  if (result.errors || !result.data) {
+    throw new Error("Expected result data to be defined.");
   }
 }

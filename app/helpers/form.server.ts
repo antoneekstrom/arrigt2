@@ -65,14 +65,14 @@ export async function loadMutation<
 
   const response = await fetchQuery(query, variables);
 
-  if (response.errors) {
-    return {
-      ...submission,
-      error: Object.fromEntries(
-        response.errors.map((error) => [error.name, [error.message]]),
-      ),
-    };
-  }
+  // if (response.errors) {
+  //   return {
+  //     ...submission,
+  //     error: Object.fromEntries(
+  //       response.errors.map((error) => [error.name, [error.message]]),
+  //     ),
+  //   };
+  // }
 
   return {
     ...submission,

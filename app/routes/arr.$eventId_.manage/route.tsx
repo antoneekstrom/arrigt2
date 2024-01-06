@@ -71,10 +71,6 @@ export async function action(args: ActionFunctionArgs) {
 export default function ManageEventPage() {
   const { data } = useLoaderData<typeof loader>();
 
-  if (!data) {
-    return <div>Something went wrong</div>;
-  }
-
   const { isOpen } = data.eventById;
 
   return (
