@@ -9,3 +9,4 @@ reports/**
 build/**
 public/**
 __generated__
+schema.graphql
