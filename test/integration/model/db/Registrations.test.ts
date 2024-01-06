@@ -6,6 +6,12 @@ import { Registrations } from "../../../../src/model/db/Registrations";
 import { z } from "zod";
 import { UUIDMock } from "graphql-scalars";
 import { contactInfoInputSchema } from "../../../../src/schema/validation";
+import {
+  inFourWeeks,
+  inOneDay,
+  inOneWeek,
+  now,
+} from "../../../../src/common/dateTime";
 
 describe("EmailRegistrations", () => {
   const events = new Events(prisma);
@@ -14,7 +20,10 @@ describe("EmailRegistrations", () => {
   const event = defaultEventData({
     title: "Apa",
     location: "Plupp Snor",
-    dateTime: new Date(),
+    dateTime: inFourWeeks(),
+    isPublishedAt: now(),
+    opensForRegistrationsAt: inOneDay(),
+    closesForRegistrationsAt: inOneWeek(),
   });
 
   const contactInfoInput: z.infer<typeof contactInfoInputSchema> = {
@@ -28,6 +37,8 @@ describe("EmailRegistrations", () => {
   it("should find the registration that was added on the event", async () => {
     const addedEvent = await events.create(event);
     expect(addedEvent).toBeDefined();
+
+    await events.openById(addedEvent.id);
 
     const addedRegistration = await registrations.createForEventById(
       addedEvent.id,
@@ -66,6 +77,8 @@ describe("EmailRegistrations", () => {
     const addedEvent = await events.create(event);
     expect(addedEvent).toBeDefined();
 
+    await events.openById(addedEvent.id);
+
     const addedRegistration = await registrations.createForEventById(
       addedEvent.id,
       contactInfoInput,
@@ -87,5 +100,27 @@ describe("EmailRegistrations", () => {
     const found = await registrations.findForEventById(addedEvent.id);
     expect(found).toBeDefined();
     expect(found).toHaveLength(1);
+  });
+
+  it("should not create registration if the event is closed", async () => {
+    const addedEvent = await events.create(event);
+    expect(addedEvent).toBeDefined();
+
+    await events.closeById(addedEvent.id);
+
+    expect(
+      registrations.createForEventById(addedEvent.id, contactInfoInput),
+    ).rejects.toThrowError();
+
+    const exists = await registrations.existsForIdAndEmail(
+      addedEvent.id,
+      contactInfoInput.email,
+    );
+
+    expect(exists).toBe(false);
+
+    const found = await registrations.findForEventById(addedEvent.id);
+    expect(found).toBeDefined();
+    expect(found).toHaveLength(0);
   });
 });
