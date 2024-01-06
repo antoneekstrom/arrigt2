@@ -1,5 +1,6 @@
 import { Prisma } from "@prisma/client";
 import { PrismaDelegate } from "../../prisma";
+import { closeEvent, openEvent } from "../events";
 
 export class Events extends PrismaDelegate {
   /**
@@ -52,5 +53,21 @@ export class Events extends PrismaDelegate {
     return this.prisma.event.create({
       data,
     });
+  }
+
+  deleteById(id: string) {
+    return this.prisma.event.delete({
+      where: {
+        id,
+      },
+    });
+  }
+
+  closeById(id: string) {
+    return this.updateById(id, closeEvent());
+  }
+
+  openById(id: string) {
+    return this.updateById(id, openEvent());
   }
 }
