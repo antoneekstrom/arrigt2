@@ -12,7 +12,6 @@ import {
 import { subscribeObjectType } from "../helpers.ts";
 import { Event } from "@prisma/client";
 import { createEventInputSchema } from "../validation.ts";
-import { now } from "../../common/dateTime.ts";
 
 const subscribe = subscribeObjectType<Event>(
   (event) => event.id,
@@ -126,9 +125,7 @@ builder.mutationFields((t) => ({
       eventId: t.arg({ type: "UUID" }),
     },
     resolve: (query, _parent, { eventId }, { events }) =>
-      events.injectQueryArgs(query).updateById(eventId, {
-        closesForRegistrationsAt: now(),
-      }),
+      events.injectQueryArgs(query).closeById(eventId),
   }),
   openEvent: t.prismaField({
     type: "Event",
@@ -136,9 +133,6 @@ builder.mutationFields((t) => ({
       eventId: t.arg({ type: "UUID" }),
     },
     resolve: (query, _parent, { eventId }, { events }) =>
-      events.injectQueryArgs(query).updateById(eventId, {
-        opensForRegistrationsAt: now(),
-        closesForRegistrationsAt: null,
-      }),
+      events.injectQueryArgs(query).openById(eventId),
   }),
 }));
