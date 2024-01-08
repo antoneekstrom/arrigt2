@@ -1,7 +1,7 @@
 import { TypeSubscriptionManager } from "@pothos/plugin-smart-subscriptions";
 import { GraphQLResolveInfo } from "graphql";
-import { createSubscriptionEventString } from "../prisma";
 import { YogaContext } from "../yoga";
+import { createSubscriptionEventString } from "../model/extensions/PubSubExtension";
 
 export function subscribeObjectType<T>(
   getId: (parent: T) => string,

@@ -15,7 +15,7 @@ const loaderQuery = gql(`
         dateTime
         closesForRegistrationsAt
         opensForRegistrationsAt
-        isOpen
+        canRegisterTo
         registrationCount
         allergies
       }
@@ -24,7 +24,7 @@ const loaderQuery = gql(`
 
 const closeEventQuery = gql(`
   mutation ManageEventPageCloseAction($eventId: UUID!) {
-    action: closeEvent(eventId: $eventId) {
+    action: closeRegistrations(eventId: $eventId) {
       id
     }
   }
@@ -32,7 +32,7 @@ const closeEventQuery = gql(`
 
 const openEventQuery = gql(`
   mutation ManageEventPageOpenAction($eventId: UUID!) {
-    action: openEvent(eventId: $eventId) {
+    action: openRegistrations(eventId: $eventId) {
       id
     }
   }
@@ -71,7 +71,7 @@ export async function action(args: ActionFunctionArgs) {
 export default function ManageEventPage() {
   const { data } = useLoaderData<typeof loader>();
 
-  const { isOpen } = data.eventById;
+  const { canRegisterTo } = data.eventById;
 
   return (
     <div>
@@ -85,12 +85,14 @@ export default function ManageEventPage() {
       </p>
       <p>Registrations: {data?.eventById.registrationCount}</p>
       <Form method="post">
-        {isOpen ? (
+        {canRegisterTo ? (
           <input type="hidden" name="type" value="close" />
         ) : (
           <input type="hidden" name="type" value="open" />
         )}
-        <button type="submit">{isOpen ? "Close" : "Open"} registrations</button>
+        <button type="submit">
+          {canRegisterTo ? "Close" : "Open"} registrations
+        </button>
       </Form>
     </div>
   );

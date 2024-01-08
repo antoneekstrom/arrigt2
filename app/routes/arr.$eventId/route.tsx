@@ -6,16 +6,16 @@ import { conform, useFieldset, useForm } from "@conform-to/react";
 import { parse } from "@conform-to/zod";
 import { ActionFunctionArgs, LoaderFunctionArgs, json } from "@remix-run/node";
 import {
-  contactInfoInputSchema,
-  personalInfoInputSchema,
-} from "../../../src/schema/validation";
+  ContactInfoSchema,
+  PersonalInfoSchema,
+} from "../../../src/model/registrations";
 
 const paramSchema = z.object({ eventId: z.string().uuid() });
 
 const formInputSchema = z.object({
   input: z.object({
-    contactInfo: contactInfoInputSchema,
-    personalInfo: personalInfoInputSchema.optional(),
+    contactInfo: ContactInfoSchema,
+    personalInfo: PersonalInfoSchema.optional(),
   }),
 });
 
@@ -38,7 +38,7 @@ const loaderQuery = gql(`
         dateTime
         closesForRegistrationsAt
         opensForRegistrationsAt
-        isOpen
+        canRegisterTo
         hasClosed
         hasOpened
       }
@@ -85,7 +85,7 @@ export default function EventPage() {
     return null;
   }
 
-  const { hasClosed, hasOpened, isOpen } = data.eventById;
+  const { hasClosed, hasOpened, canRegisterTo } = data.eventById;
 
   return (
     <div>
@@ -97,7 +97,7 @@ export default function EventPage() {
         <h2>{new Date(Date.parse(data?.eventById.dateTime)).toDateString()}</h2>
       )}
 
-      {isOpen && (
+      {canRegisterTo && (
         <fetcher.Form method="post" autoComplete="off" {...form.props}>
           <div>
             <label htmlFor={contactFields.email.id}>Email</label>

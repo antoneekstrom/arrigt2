@@ -8,16 +8,23 @@ import { subscribeObjectType } from "../helpers.ts";
 import { ContactInfoInput } from "./ContactInfoObject.ts";
 import { EventObjectType } from "./EventObject.ts";
 import { PersonalInfoInput } from "./PersonalInfoObject.ts";
-import { ERROR_DUPLICATE_REGISTRATION } from "../../model/db/Registrations.ts";
-import { contactInfoInputSchema } from "../validation.ts";
+import prisma from "../../prisma.ts";
+import { RegistrationExtension } from "../../model/extensions/RegistrationExtension.ts";
 
 export const EmailRegistrationObjectType = builder.prismaObject(
   "EmailRegistration",
   {
     subscribe: subscribeObjectType<EmailRegistration>(
       (registration) => registration.email,
-      ({ eventId, email }, { registrations }) =>
-        registrations.findByEventIdAndEmail(eventId, email),
+      ({ eventId, email }) =>
+        prisma.emailRegistration.findUniqueOrThrow({
+          where: {
+            email_eventId: {
+              email,
+              eventId,
+            },
+          },
+        }),
     ),
     fields: (t) => ({
       event: t.relation("event"),
@@ -75,8 +82,13 @@ builder.queryFields((t) => ({
     args: {
       email: t.arg({ type: "Email" }),
     },
-    resolve: (query, _parent, { email }, { registrations }) =>
-      registrations.injectQueryArgs(query).findByEmail(email),
+    resolve: (query, _parent, { email }) =>
+      prisma.$extends(RegistrationExtension).emailRegistration.findMany({
+        ...query,
+        where: {
+          email,
+        },
+      }),
   }),
   registrationsByEventId: t.prismaField({
     type: ["EmailRegistration"],
@@ -84,8 +96,13 @@ builder.queryFields((t) => ({
     args: {
       eventId: t.arg({ type: "UUID" }),
     },
-    resolve: (query, _parent, { eventId }, { registrations }) =>
-      registrations.injectQueryArgs(query).findForEventById(eventId),
+    resolve: (query, _parent, { eventId }) =>
+      prisma.$extends(RegistrationExtension).emailRegistration.findMany({
+        ...query,
+        where: {
+          eventId,
+        },
+      }),
   }),
 }));
 
@@ -106,28 +123,12 @@ builder.mutationFields((t) => ({
       eventId: t.arg({ type: "UUID" }),
       input: t.arg({ type: EmailRegistrationInput }),
     },
-    resolve: async (query, _parent, { eventId, input }, { registrations }) => {
-      try {
-        return await registrations
-          .injectQueryArgs(query)
-          .createForEventById(
-            eventId,
-            contactInfoInputSchema.parse(input.contactInfo),
-            input.personalInfo === null ? undefined : input.personalInfo,
-          );
-      } catch (err) {
-        if (
-          err instanceof Error &&
-          err.cause === ERROR_DUPLICATE_REGISTRATION
-        ) {
-          return Promise.resolve(
-            registrations
-              .injectQueryArgs(query)
-              .findByEventIdAndEmail(eventId, input.contactInfo.email),
-          );
-        }
-        return await Promise.reject(err);
-      }
-    },
+    resolve: async (query, _parent, { eventId, input }) =>
+      prisma.$extends(RegistrationExtension).emailRegistration.registerTo({
+        event: eventId,
+        email: input.contactInfo.email,
+        contactInfo: input.contactInfo,
+        personalInfo: input.personalInfo ?? undefined,
+      }),
   }),
 }));

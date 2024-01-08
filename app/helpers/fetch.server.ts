@@ -1,7 +1,7 @@
 import { buildHTTPExecutor } from "@graphql-tools/executor-http";
 import { yogaRequestHandler } from "../../src/yoga";
 import { TypedDocumentNode } from "@graphql-typed-document-node/core";
-import { ExecutionResult } from "graphql";
+import { ExecutionResult, GraphQLError } from "graphql";
 
 export interface SuccessfulExecutionResult<T> extends ExecutionResult<T> {
   data: T;
@@ -53,7 +53,9 @@ export function assertSingleValue<T extends object>(
 export function assertSuccessfulResult<T>(
   result: ExecutionResult<T>,
 ): asserts result is SuccessfulExecutionResult<T> {
-  if (result.errors || !result.data) {
-    throw new Error("Expected result data to be defined.");
+  if (result.errors) {
+    throw new GraphQLError(
+      result.errors.map((error) => error.message).join(", "),
+    );
   }
 }

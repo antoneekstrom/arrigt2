@@ -3,19 +3,20 @@
  */
 
 import builder from "../builder.ts";
-import {
-  defaultEventData,
-  hasEventClosed,
-  hasEventOpened,
-  isEventOpen,
-} from "../../model/events.ts";
+import { hasEventClosed, hasEventOpened } from "../../model/events.ts";
+import { canRegisterToEvent } from "../../model/registrations.ts";
 import { subscribeObjectType } from "../helpers.ts";
 import { Event } from "@prisma/client";
-import { createEventInputSchema } from "../validation.ts";
+import prisma from "../../prisma.ts";
+import { EventExtension } from "../../model/extensions/EventExtension.ts";
+import * as Events from "../../model/events.ts";
+import { PrismaClientKnownRequestError } from "@prisma/client/runtime/library";
+import { GraphQLError } from "graphql";
+import { ValidationErrorExtension } from "../../model/extensions/ValidationErrorExtension.ts";
 
 const subscribe = subscribeObjectType<Event>(
   (event) => event.id,
-  ({ id }, { events }) => events.findById(id),
+  ({ id }) => prisma.event.findUniqueOrThrow({ where: { id } }),
 );
 
 export const EventObjectType = builder.prismaObject("Event", {
@@ -33,9 +34,9 @@ export const EventObjectType = builder.prismaObject("Event", {
       type: "DateTime",
       nullable: true,
     }),
-    isOpen: t.field({
+    canRegisterTo: t.field({
       type: "Boolean",
-      resolve: (event) => isEventOpen(event),
+      resolve: (event) => canRegisterToEvent(event),
     }),
     hasClosed: t.field({
       type: "Boolean",
@@ -52,8 +53,7 @@ builder.queryFields((t) => ({
   allEvents: t.prismaField({
     type: ["Event"],
     smartSubscription: false,
-    resolve: (query, _parent, _args, { events }) =>
-      events.injectQueryArgs(query).findAll(),
+    resolve: (query) => prisma.event.findMany({ ...query }),
   }),
   eventById: t.prismaField({
     type: "Event",
@@ -61,8 +61,21 @@ builder.queryFields((t) => ({
     args: {
       eventId: t.arg({ type: "UUID" }),
     },
-    resolve: (query, _parent, { eventId }, { events }) =>
-      events.injectQueryArgs(query).findById(eventId),
+    resolve: async (query, _parent, { eventId }) => {
+      try {
+        return await prisma.event.findUniqueOrThrow({
+          ...query,
+          where: { id: eventId },
+        });
+      } catch (err) {
+        if (err instanceof PrismaClientKnownRequestError) {
+          if (err.code === "P2025") {
+            throw new GraphQLError(`Event with id ${eventId} not found.`);
+          }
+        }
+        throw err;
+      }
+    },
   }),
 }));
 
@@ -75,9 +88,6 @@ export const CreateEventInput = builder.inputType("CreateEventInput", {
     opensForRegistrationsAt: t.field({ type: "DateTime", required: false }),
     closesForRegistrationsAt: t.field({ type: "DateTime", required: false }),
   }),
-  validate: {
-    schema: createEventInputSchema,
-  },
 });
 
 export const EditEventInput = builder.inputType("EditEventInput", {
@@ -89,9 +99,6 @@ export const EditEventInput = builder.inputType("EditEventInput", {
     opensForRegistrationsAt: t.field({ type: "DateTime", required: false }),
     closesForRegistrationsAt: t.field({ type: "DateTime", required: false }),
   }),
-  // validate: {
-  //   schema: createEventInputSchema,
-  // },
 });
 
 builder.mutationFields((t) => ({
@@ -100,10 +107,28 @@ builder.mutationFields((t) => ({
     args: {
       input: t.arg({ type: CreateEventInput }),
     },
-    resolve: (query, _parent, { input }, { events }) =>
-      events
-        .injectQueryArgs(query)
-        .create(defaultEventData(createEventInputSchema.parse(input))),
+    resolve: async (query, _parent, { input }) => {
+      const client = prisma
+        .$extends(ValidationErrorExtension)
+        .$extends(EventExtension);
+      try {
+        return await client.event.create({
+          ...query,
+          data: Events.EventSchema.parse(input),
+        });
+      } catch (err) {
+        if (err instanceof PrismaClientKnownRequestError) {
+          if (err.code === "P2002") {
+            return Promise.reject(
+              new GraphQLError(
+                `Event with title ${input.title} already exists.`,
+              ),
+            );
+          }
+        }
+        return Promise.reject(err);
+      }
+    },
   }),
   editEvent: t.prismaField({
     type: "Event",
@@ -111,28 +136,32 @@ builder.mutationFields((t) => ({
       eventId: t.arg({ type: "UUID" }),
       input: t.arg({ type: EditEventInput }),
     },
-    resolve: (query, _parent, { eventId, input }, { events }) =>
-      events
-        .injectQueryArgs(query)
-        .updateById(
-          eventId,
-          defaultEventData(createEventInputSchema.parse(input)),
+    resolve: async (query, _parent, { eventId, input }) =>
+      prisma
+        .$extends(EventExtension)
+        .event.edit(
+          { ...query, id: eventId },
+          Events.EventSchema.partial().parse(input),
         ),
   }),
-  closeEvent: t.prismaField({
+  closeRegistrations: t.prismaField({
     type: "Event",
     args: {
       eventId: t.arg({ type: "UUID" }),
     },
-    resolve: (query, _parent, { eventId }, { events }) =>
-      events.injectQueryArgs(query).closeById(eventId),
+    resolve: (query, _parent, { eventId }) =>
+      prisma
+        .$extends(EventExtension)
+        .event.closeRegistrations({ ...query, id: eventId }),
   }),
-  openEvent: t.prismaField({
+  openRegistrations: t.prismaField({
     type: "Event",
     args: {
       eventId: t.arg({ type: "UUID" }),
     },
-    resolve: (query, _parent, { eventId }, { events }) =>
-      events.injectQueryArgs(query).openById(eventId),
+    resolve: (query, _parent, { eventId }) =>
+      prisma
+        .$extends(EventExtension)
+        .event.openRegistrations({ ...query, id: eventId }),
   }),
 }));

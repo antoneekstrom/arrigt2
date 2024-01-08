@@ -1,54 +1,59 @@
-import { Event } from "@prisma/client";
 import { now } from "../common/dateTime";
+import { z } from "zod";
 
-export type EventData = Omit<Event, "id" | "createdAt">;
+export type EventSchema = Required<z.infer<typeof EventSchema>>;
 
-export const ERROR_CLOSING_BEFORE_OPENING =
-  "Event cannot close for registration before opening for registration.";
+export const EventSchema = z.object({
+  title: z.string(),
+  location: z.string(),
+  dateTime: z.coerce.date(),
+  isPublishedAt: z.coerce.date().default(now()).optional(),
+  opensForRegistrationsAt: z.coerce.date().default(now()).optional(),
+  closesForRegistrationsAt: z.coerce.date().optional().nullable(),
+});
 
-export function closeEvent() {
-  return {
-    closesForRegistrationsAt: now(),
-  };
-}
+export const EventSchemaWithConstraints = EventSchema.required()
+  .refine(
+    isEventOpeningBeforeClosing,
+    "Event cannot close for registration before opening.",
+  )
+  .refine(
+    isEventOpeningBeforeStarting,
+    "Event cannot start before opening for registration.",
+  )
+  .refine(
+    isEventPublishedBeforeClosing,
+    "Event cannot close for registration before being published.",
+  )
+  .refine(
+    isEventPublishedBeforeOpening,
+    "Event cannot open for registration before being published.",
+  )
+  .refine(
+    isEventPublishedBeforeStarting,
+    "Event cannot start before being published.",
+  )
+  .refine(
+    isEventClosingBeforeStarting,
+    "Event cannot close for registration before starting.",
+  );
 
-export function openEvent() {
-  return {
-    opensForRegistrationsAt: now(),
-    closesForRegistrationsAt: null,
-  };
-}
-
-export function defaultEventData(
-  data: Partial<EventData> & Pick<EventData, "title" | "location" | "dateTime">,
-): EventData {
-  const now = new Date(Date.now());
-  return {
-    title: data.title,
-    location: data.location,
-    dateTime: data.dateTime,
-    isPublishedAt: data.isPublishedAt ?? now,
-    opensForRegistrationsAt: data.opensForRegistrationsAt ?? now,
-    closesForRegistrationsAt: data.closesForRegistrationsAt ?? data.dateTime,
-  };
-}
-
-export function isEventPublished(
-  event: Pick<Event, "isPublishedAt">,
+export function hasEventBeenPublished(
+  event: Pick<EventSchema, "isPublishedAt">,
   now = new Date(Date.now()),
 ) {
   return now >= event.isPublishedAt;
 }
 
 export function hasEventOpened(
-  event: Pick<Event, "opensForRegistrationsAt">,
+  event: Pick<EventSchema, "opensForRegistrationsAt">,
   now = new Date(Date.now()),
 ) {
   return now >= event.opensForRegistrationsAt;
 }
 
 export function hasEventClosed(
-  event: Pick<Event, "closesForRegistrationsAt">,
+  event: Pick<EventSchema, "closesForRegistrationsAt">,
   now = new Date(Date.now()),
 ) {
   return !event.closesForRegistrationsAt
@@ -56,32 +61,9 @@ export function hasEventClosed(
     : now >= event.closesForRegistrationsAt;
 }
 
-export function isEventOpen(
-  event: Pick<
-    Event,
-    "isPublishedAt" | "opensForRegistrationsAt" | "closesForRegistrationsAt"
-  >,
-  now = new Date(Date.now()),
-) {
-  return (
-    isEventPublished(event, now) &&
-    hasEventOpened(event, now) &&
-    !hasEventClosed(event, now)
-  );
-}
-
-export function isEventValid(event: EventData) {
-  try {
-    assertEventIsValid(event);
-    return true;
-  } catch {
-    return false;
-  }
-}
-
 export function assertEventIsValid(
-  event: EventData,
-): asserts event is EventData {
+  event: EventSchema,
+): asserts event is EventSchema {
   if (!isEventPublishedBeforeOpening(event)) {
     throw new Error(
       "Event cannot open for registration before being published.",
@@ -99,26 +81,26 @@ export function assertEventIsValid(
   }
 
   if (!isEventOpeningBeforeClosing(event)) {
-    throw new Error(ERROR_CLOSING_BEFORE_OPENING);
+    throw new Error("Event cannot close for registration before opening.");
   }
 
   if (!isEventOpeningBeforeStarting(event)) {
     throw new Error("Event cannot start before opening for registration.");
   }
 
-  if (!isEventStartingBeforeClosing(event)) {
+  if (!isEventClosingBeforeStarting(event)) {
     throw new Error("Event cannot close for registration before starting.");
   }
 }
 
 export function isEventPublishedBeforeOpening(
-  event: Pick<Event, "opensForRegistrationsAt" | "isPublishedAt">,
+  event: Pick<EventSchema, "opensForRegistrationsAt" | "isPublishedAt">,
 ) {
   return event.isPublishedAt <= event.opensForRegistrationsAt;
 }
 
 export function isEventPublishedBeforeClosing(
-  event: Pick<Event, "isPublishedAt" | "closesForRegistrationsAt">,
+  event: Pick<EventSchema, "isPublishedAt" | "closesForRegistrationsAt">,
 ) {
   return (
     !event.closesForRegistrationsAt ||
@@ -127,13 +109,16 @@ export function isEventPublishedBeforeClosing(
 }
 
 export function isEventPublishedBeforeStarting(
-  event: Pick<Event, "isPublishedAt" | "dateTime">,
+  event: Pick<EventSchema, "isPublishedAt" | "dateTime">,
 ) {
   return event.isPublishedAt <= event.dateTime;
 }
 
 export function isEventOpeningBeforeClosing(
-  event: Pick<Event, "closesForRegistrationsAt" | "opensForRegistrationsAt">,
+  event: Pick<
+    EventSchema,
+    "closesForRegistrationsAt" | "opensForRegistrationsAt"
+  >,
 ) {
   return (
     !event.closesForRegistrationsAt ||
@@ -142,16 +127,16 @@ export function isEventOpeningBeforeClosing(
 }
 
 export function isEventOpeningBeforeStarting(
-  event: Pick<Event, "opensForRegistrationsAt" | "dateTime">,
+  event: Pick<EventSchema, "opensForRegistrationsAt" | "dateTime">,
 ) {
   return event.opensForRegistrationsAt <= event.dateTime;
 }
 
-export function isEventStartingBeforeClosing(
-  event: Pick<Event, "dateTime" | "closesForRegistrationsAt">,
+export function isEventClosingBeforeStarting(
+  event: Pick<EventSchema, "dateTime" | "closesForRegistrationsAt">,
 ) {
   return (
     !event.closesForRegistrationsAt ||
-    event.dateTime <= event.closesForRegistrationsAt
+    event.closesForRegistrationsAt <= event.dateTime
   );
 }

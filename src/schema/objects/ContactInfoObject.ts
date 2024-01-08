@@ -2,8 +2,8 @@
  * @file Configures and exports the `ContactInfoObject` object type.
  */
 
+import { ContactInfoSchema } from "../../model/registrations";
 import builder from "../builder";
-import { contactInfoInputSchema } from "../validation";
 
 builder.prismaObject("ContactInfo", {
   fields: (t) => ({
@@ -21,7 +21,7 @@ builder.prismaObject("ContactInfo", {
 
 export const ContactInfoInput = builder.inputType("ContactInfoInput", {
   validate: {
-    schema: contactInfoInputSchema,
+    schema: ContactInfoSchema,
   },
   fields: (t) => ({
     email: t.field({ type: "Email" }),

@@ -54,13 +54,13 @@ input EmailRegistrationInput {
 
 type Event {
   allergies: [String!]!
+  canRegisterTo: Boolean!
   closesForRegistrationsAt: DateTime
   dateTime: DateTime!
   diets: [String!]!
   hasClosed: Boolean!
   hasOpened: Boolean!
   id: UUID!
-  isOpen: Boolean!
   isPublishedAt: DateTime!
   location: String!
   opensForRegistrationsAt: DateTime!
@@ -70,10 +70,10 @@ type Event {
 }
 
 type Mutation {
-  closeEvent(eventId: UUID!): Event!
+  closeRegistrations(eventId: UUID!): Event!
   createEvent(input: CreateEventInput!): Event!
   editEvent(eventId: UUID!, input: EditEventInput!): Event!
-  openEvent(eventId: UUID!): Event!
+  openRegistrations(eventId: UUID!): Event!
   registerByEmail(eventId: UUID!, input: EmailRegistrationInput!): EmailRegistration!
 }
 

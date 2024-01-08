@@ -5,8 +5,8 @@ import { Form, useActionData } from "@remix-run/react";
 import { conform, useFieldset, useForm } from "@conform-to/react";
 import { parse } from "@conform-to/zod";
 import { ActionFunctionArgs, json, redirect } from "@remix-run/node";
-import { createEventInputSchema } from "../../../src/schema/validation";
 import { shouldSubmit } from "../../helpers/data.server";
+import { EventSchemaWithConstraints } from "../../../src/model/events";
 
 const actionQuery = gql(`
   mutation CreateEventPageAction($input: CreateEventInput!) {
@@ -17,7 +17,7 @@ const actionQuery = gql(`
 `);
 
 const formDataSchema = z.object({
-  input: createEventInputSchema,
+  input: EventSchemaWithConstraints,
 });
 
 export async function action(args: ActionFunctionArgs) {
