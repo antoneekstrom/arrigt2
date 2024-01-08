@@ -34,12 +34,12 @@
   "include": [
     "./src",
     "./app",
+    "./test",
   ],
   "files": [
     "./build/index.js"
   ],
   "exclude": [
-    "**/node_modules",
-    "**/.*/"
+    "**/node_modules"
   ]
 }
