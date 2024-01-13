@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
 
 env:
-  DATABASE_URL: postgresql://${{ secrets.POSTGRES_USER }}:${{ secrets.POSTGRES_PASSWORD }}@${{ secrets.DB_HOST }}:${{ secrets.DB_PORT}}/${{ secrets.POSTGRES_DB }}?schema=public
+  DATABASE_URL: postgresql://${{ secrets.POSTGRES_USER }}:${{ secrets.POSTGRES_PASSWORD }}@localhost:5432/${{ secrets.POSTGRES_DB }}?schema=public
 
 jobs:
   run-integration-test:
@@ -13,9 +13,9 @@ jobs:
       db:
         image: postgres
         env:
-          POSTGRES_DB: arrigt
-          POSTGRES_USER: arrigt
-          POSTGRES_PASSWORD: plupp123
+          POSTGRES_DB: ${{ secrets.POSTGRES_DB }}
+          POSTGRES_USER: ${{ secrets.POSTGRES_USER }}
+          POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
         options: >-
           --health-cmd pg_isready
           --health-interval 10s
