@@ -2,11 +2,12 @@ import { z } from "zod";
 import { gql } from "../../__generated__/graphql";
 import { loadMutation } from "../../helpers/form.server";
 import { Form, useActionData } from "@remix-run/react";
-import { conform, useFieldset, useForm } from "@conform-to/react";
+import { FieldConfig, conform, useFieldset, useForm } from "@conform-to/react";
 import { parse } from "@conform-to/zod";
 import { ActionFunctionArgs, json, redirect } from "@remix-run/node";
 import { shouldSubmit } from "../../helpers/data.server";
 import { EventSchemaWithConstraints } from "../../../src/model/events";
+import { RefObject, useState } from "react";
 
 const actionQuery = gql(`
   mutation CreateEventPageAction($input: CreateEventInput!) {
@@ -44,34 +45,165 @@ export default function CreateEventPage() {
     },
   });
 
-  const { title, dateTime, location } = useFieldset(form.ref, input);
-
   return (
     <div>
       <h1>Create Event</h1>
-      <Form method="post">
-        <div>
-          <label htmlFor={title.id}>Title</label>
-          <input {...conform.input(title, { type: "text" })} />
-          {title.error && <div>{title.error}</div>}
-        </div>
-        <div>
-          <label htmlFor={dateTime.id}>Date &amp; Time</label>
-          <input {...conform.input(dateTime, { type: "datetime-local" })} />
-        </div>
-        <div>
-          <label htmlFor={location.id}>Location</label>
-          <input {...conform.input(location, { type: "text" })} />
-        </div>
-        <div>
-          <button type="submit">Create</button>
-          {form.error && <div>{form.error}</div>}
-          {form.errors && <div>{form.errors}</div>}
-          {lastSubmission?.error && (
-            <div>{JSON.stringify(lastSubmission.error)}</div>
-          )}
-        </div>
+      <Form {...form.props} method="post">
+        <h2>Details</h2>
+        <CreateEventDetailsFields formRef={form.ref} input={input} />
+
+        <h2>Registration</h2>
+        <CreateEventRegistrationFields formRef={form.ref} input={input} />
+
+        <h2>Publish</h2>
+        <CreateEventPublishFields formRef={form.ref} input={input} />
+
+        <button type="submit" name="intent" value="draft" disabled={true}>
+          Save Draft
+        </button>
+        <button type="submit" name="intent" value="create">
+          Create
+        </button>
       </Form>
+    </div>
+  );
+}
+
+type FieldsetProps = {
+  formRef: RefObject<HTMLFormElement | HTMLFieldSetElement>;
+  input: FieldConfig<z.infer<typeof EventSchemaWithConstraints>>;
+};
+
+function CreateEventDetailsFields({ formRef, input }: FieldsetProps) {
+  const { title, dateTime, location } = useFieldset(formRef, input);
+
+  const titleField = (
+    <div>
+      <label htmlFor={title.id}>Title</label>
+      <input {...conform.input(title, { type: "text" })} />
+      {title.error && <div>{title.error}</div>}
+    </div>
+  );
+
+  const dateTimeField = (
+    <div>
+      <label htmlFor={dateTime.id}>Date &amp; Time</label>
+      <input {...conform.input(dateTime, { type: "datetime-local" })} />
+      {dateTime.error && <div>{dateTime.error}</div>}
+    </div>
+  );
+
+  const locationField = (
+    <div>
+      <label htmlFor={location.id}>Location</label>
+      <input {...conform.input(location, { type: "text" })} />
+      {location.error && <div>{location.error}</div>}
+    </div>
+  );
+
+  return (
+    <div>
+      {titleField}
+      {dateTimeField}
+      {locationField}
+    </div>
+  );
+}
+
+function CreateEventRegistrationFields({ formRef, input }: FieldsetProps) {
+  const [openWhenEventPublish, setOpenWhenEventPublish] = useState(true);
+  const [closeWhenEventStart, setCloseWhenEventStart] = useState(true);
+
+  const { opensForRegistrationsAt, closesForRegistrationsAt } = useFieldset(
+    formRef,
+    input,
+  );
+
+  const openForRegistrationsAtField = (
+    <div>
+      <label htmlFor={opensForRegistrationsAt.id}>
+        Opens for registrations at
+      </label>
+      <input
+        {...conform.input(opensForRegistrationsAt, {
+          type: "datetime-local",
+        })}
+        disabled={openWhenEventPublish}
+      />
+      {opensForRegistrationsAt.error && (
+        <div>{opensForRegistrationsAt.error}</div>
+      )}
+    </div>
+  );
+
+  const closesForRegistrationField = (
+    <div>
+      <label htmlFor={closesForRegistrationsAt.id}>
+        Closes for registrations at
+      </label>
+      <input
+        {...conform.input(closesForRegistrationsAt, {
+          type: "datetime-local",
+        })}
+        disabled={closeWhenEventStart}
+      />
+      {closesForRegistrationsAt.error && (
+        <div>{closesForRegistrationsAt.error}</div>
+      )}
+    </div>
+  );
+
+  return (
+    <div>
+      <div>
+        <label htmlFor="openWhenEventPublish">Open when published</label>
+        <input
+          type="checkbox"
+          name="openWhenEventPublish"
+          checked={openWhenEventPublish}
+          onChange={() => setOpenWhenEventPublish((now) => !now)}
+        />
+        {!openWhenEventPublish && openForRegistrationsAtField}
+      </div>
+      <div>
+        <label htmlFor="closeWhenEventStart">Close when starts</label>
+        <input
+          type="checkbox"
+          name="closeWhenEventStart"
+          checked={closeWhenEventStart}
+          onChange={() => setCloseWhenEventStart((now) => !now)}
+        />
+        {!closeWhenEventStart && closesForRegistrationField}
+      </div>
+    </div>
+  );
+}
+
+function CreateEventPublishFields({ formRef, input }: FieldsetProps) {
+  const { isPublishedAt } = useFieldset(formRef, input);
+  const [publishImmediately, setPublishImmediately] = useState(true);
+
+  const isPublishedAtField = (
+    <div>
+      <label htmlFor={isPublishedAt.id}>Is published</label>
+      <input
+        {...conform.input(isPublishedAt, { type: "datetime-local" })}
+        disabled={publishImmediately}
+      />
+      {isPublishedAt.error && <div>{isPublishedAt.error}</div>}
+    </div>
+  );
+
+  return (
+    <div>
+      <label htmlFor="publishImmediately">Publish immediately</label>
+      <input
+        type="checkbox"
+        name="publishImmediately"
+        checked={publishImmediately}
+        onChange={() => setPublishImmediately((now) => !now)}
+      />
+      {!publishImmediately && isPublishedAtField}
     </div>
   );
 }
