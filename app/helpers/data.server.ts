@@ -10,9 +10,12 @@ export async function parseFormData<TResult>(
   return parse(formData, { schema });
 }
 
-export function shouldSubmit<T>(
-  submission: Submission<T>,
-): submission is Submission<T> & { intent: "submit"; value: T } {
+export function shouldSubmit<TSubmission extends Submission>(
+  submission: TSubmission,
+): submission is TSubmission & {
+  intent: "submit";
+  value: NonNullable<TSubmission["value"]>;
+} {
   return (
     submission.intent === "submit" &&
     submission.value !== undefined &&

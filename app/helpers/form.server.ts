@@ -1,4 +1,3 @@
-import { ExecutionResult } from "graphql";
 import { TypedDocumentNode } from "@graphql-typed-document-node/core";
 import { ActionFunctionArgs, LoaderFunctionArgs } from "@remix-run/node";
 import { z } from "zod";
@@ -47,7 +46,7 @@ export async function loadMutation<
   },
 ): Promise<
   Submission<TFormData> & {
-    data?: ExecutionResult<TResult>["data"];
+    data?: TResult;
   }
 > {
   const { query, formDataSchema, paramSchema } = options;
