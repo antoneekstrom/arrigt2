@@ -27,8 +27,8 @@ export async function action(args: ActionFunctionArgs) {
     formDataSchema,
   });
 
-  if (shouldSubmit(result)) {
-    throw redirect("/");
+  if (shouldSubmit(result) && result.data !== undefined) {
+    throw redirect(`/arr/${result.data.createEvent.id}`);
   }
 
   return json(result);
