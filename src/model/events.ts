@@ -5,7 +5,7 @@ export type EventSchema = Required<z.infer<typeof EventSchema>>;
 
 export const EventSchema = z.object({
   title: z.string(),
-  location: z.string(),
+  location: z.string().min(5),
   dateTime: z.coerce.date(),
   isPublishedAt: z.coerce.date().default(now()).optional(),
   opensForRegistrationsAt: z.coerce.date().default(now()).optional(),
@@ -13,30 +13,30 @@ export const EventSchema = z.object({
 });
 
 export const EventSchemaWithConstraints = EventSchema.required()
-  .refine(
-    isEventOpeningBeforeClosing,
-    "Event cannot close for registration before opening.",
-  )
-  .refine(
-    isEventOpeningBeforeStarting,
-    "Event cannot start before opening for registration.",
-  )
-  .refine(
-    isEventPublishedBeforeClosing,
-    "Event cannot close for registration before being published.",
-  )
-  .refine(
-    isEventPublishedBeforeOpening,
-    "Event cannot open for registration before being published.",
-  )
-  .refine(
-    isEventPublishedBeforeStarting,
-    "Event cannot start before being published.",
-  )
-  .refine(
-    isEventClosingBeforeStarting,
-    "Event cannot close for registration before starting.",
-  );
+  .refine(isEventOpeningBeforeClosing, {
+    message: "Event cannot close for registration before opening.",
+    path: ["closesForRegistrationsAt"],
+  })
+  .refine(isEventOpeningBeforeStarting, {
+    message: "Event cannot start before opening for registration.",
+    path: ["dateTime"],
+  })
+  .refine(isEventPublishedBeforeClosing, {
+    message: "Event cannot close for registration before being published.",
+    path: ["closesForRegistrationsAt"],
+  })
+  .refine(isEventPublishedBeforeOpening, {
+    message: "Event cannot open for registration before being published.",
+    path: ["opensForRegistrationsAt"],
+  })
+  .refine(isEventPublishedBeforeStarting, {
+    message: "Event cannot start before being published.",
+    path: ["dateTime"],
+  })
+  .refine(isEventClosingBeforeStarting, {
+    message: "Event cannot close for registration before starting.",
+    path: ["closesForRegistrationsAt"],
+  });
 
 export function hasEventBeenPublished(
   event: Pick<EventSchema, "isPublishedAt">,
