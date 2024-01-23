@@ -10,7 +10,10 @@ import { Event } from "@prisma/client";
 import prisma from "../../prisma.ts";
 import { EventExtension } from "../../model/extensions/EventExtension.ts";
 import * as Events from "../../model/events.ts";
-import { PrismaClientKnownRequestError } from "@prisma/client/runtime/library";
+import {
+  PrismaClientInitializationError,
+  PrismaClientKnownRequestError,
+} from "@prisma/client/runtime/library";
 import { GraphQLError } from "graphql";
 import { ValidationErrorExtension } from "../../model/extensions/ValidationErrorExtension.ts";
 
@@ -26,7 +29,10 @@ export const EventObjectType = builder.prismaObject("Event", {
     title: t.exposeString("title"),
     location: t.exposeString("location"),
     dateTime: t.expose("dateTime", { type: "DateTime" }),
-    isPublishedAt: t.expose("isPublishedAt", { type: "DateTime" }),
+    isPublishedAt: t.expose("isPublishedAt", {
+      type: "DateTime",
+      nullable: true,
+    }),
     opensForRegistrationsAt: t.expose("opensForRegistrationsAt", {
       type: "DateTime",
     }),
@@ -46,14 +52,44 @@ export const EventObjectType = builder.prismaObject("Event", {
       type: "Boolean",
       resolve: (event) => hasEventOpened(event),
     }),
+    isDraft: t.field({
+      type: "Boolean",
+      resolve: (event) => Events.isEventDraft(event),
+    }),
   }),
 });
 
 builder.queryFields((t) => ({
+  allPublishedEvents: t.prismaField({
+    type: ["Event"],
+    smartSubscription: false,
+    resolve: (query) =>
+      prisma
+        .$extends(EventExtension)
+        .event.findMany({ ...query })
+        .catch((err) => {
+          if (err instanceof PrismaClientInitializationError) {
+            return Promise.reject(new GraphQLError("Cannot reach database."));
+          }
+          return Promise.reject(err);
+        })
+        .then((events) =>
+          events.filter((event) => !Events.isEventDraft(event)),
+        ),
+  }),
   allEvents: t.prismaField({
     type: ["Event"],
     smartSubscription: false,
-    resolve: (query) => prisma.event.findMany({ ...query }),
+    resolve: (query) =>
+      prisma
+        .$extends(EventExtension)
+        .event.findMany({ ...query })
+        .catch((err) => {
+          if (err instanceof PrismaClientInitializationError) {
+            return Promise.reject(new GraphQLError("Cannot reach database."));
+          }
+          return Promise.reject(err);
+        }),
   }),
   eventById: t.prismaField({
     type: "Event",
