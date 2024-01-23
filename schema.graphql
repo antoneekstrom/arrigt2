@@ -14,6 +14,14 @@ input ContactInfoInput {
   lastNickName: String
 }
 
+input CreateEventDraftInput {
+  closesForRegistrationsAt: DateTime
+  dateTime: DateTime!
+  location: String!
+  opensForRegistrationsAt: DateTime
+  title: String!
+}
+
 input CreateEventInput {
   closesForRegistrationsAt: DateTime
   dateTime: DateTime!
@@ -61,7 +69,8 @@ type Event {
   hasClosed: Boolean!
   hasOpened: Boolean!
   id: UUID!
-  isPublishedAt: DateTime!
+  isDraft: Boolean!
+  isPublishedAt: DateTime
   location: String!
   opensForRegistrationsAt: DateTime!
   registrationCount: Int!
@@ -89,6 +98,7 @@ input PersonalInfoInput {
 
 type Query {
   allEvents: [Event!]!
+  allPublishedEvents: [Event!]!
   eventById(eventId: UUID!): Event!
   registrationsByEmail(email: Email!): [EmailRegistration!]!
   registrationsByEventId(eventId: UUID!): [EmailRegistration!]!

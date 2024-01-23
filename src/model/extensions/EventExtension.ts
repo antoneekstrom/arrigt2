@@ -3,6 +3,7 @@ import { Prisma } from "@prisma/client";
 import { Event } from "@prisma/client";
 import * as Events from "../events";
 import * as registrations from "../registrations";
+import { z } from "zod";
 
 export const EventExtension = Prisma.defineExtension({
   result: {
@@ -14,6 +15,12 @@ export const EventExtension = Prisma.defineExtension({
           isPublishedAt: true,
         },
         compute: registrations.canRegisterToEvent,
+      },
+      isDraft: {
+        needs: {
+          isPublishedAt: true,
+        },
+        compute: Events.isEventDraft,
       },
       hasOpened: {
         needs: {
@@ -33,7 +40,7 @@ export const EventExtension = Prisma.defineExtension({
     event: {
       edit(
         where: Prisma.Args<Prisma.EventDelegate, "update">["where"],
-        data: Partial<EventSchema>,
+        data: Partial<z.output<typeof EventSchema>>,
       ): Promise<Event> {
         const ctx = Prisma.getExtensionContext(this);
         return ctx.$parent.$transaction(async (prisma) => {

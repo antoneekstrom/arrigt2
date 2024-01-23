@@ -17,13 +17,20 @@ model Event {
 
   id String @id @default(uuid())
 
+  /// Title of the event.
   title    String
+  /// Date and time of the event.
   dateTime DateTime
+  /// Location of the event.
   location String
 
+  /// Time when the record was created.
   createdAt                DateTime  @default(now())
-  isPublishedAt            DateTime  @default(now())
+  /// Time when the event is published. If null, the event is considered a draft.
+  isPublishedAt            DateTime? @default(now())
+  /// Time when the event is opened for registrations.
   opensForRegistrationsAt  DateTime  @default(now())
+  /// Time when the event is closed for registrations. If null, the closes when the event starts.
   closesForRegistrationsAt DateTime?
 }
 
