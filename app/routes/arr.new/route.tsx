@@ -5,7 +5,7 @@ import { Form, useActionData } from "@remix-run/react";
 import { FieldConfig, conform, useFieldset, useForm } from "@conform-to/react";
 import { parse } from "@conform-to/zod";
 import { ActionFunctionArgs, json, redirect } from "@remix-run/node";
-import { shouldSubmit } from "../../helpers/data.server";
+import { parseFormData, shouldSubmit } from "../../helpers/data.server";
 import { EventSchemaWithConstraints } from "../../../src/model/events";
 import { RefObject, useState } from "react";
 
@@ -17,18 +17,28 @@ const actionQuery = gql(`
   }
 `);
 
-const formDataSchema = z.object({
+const eventFormDataSchema = z.object({
   input: EventSchemaWithConstraints,
 });
 
+const eventDraftformDataSchema = eventFormDataSchema.transform(({ input }) => ({
+  input: { ...input, isPublishedAt: null },
+}));
+
 export async function action(args: ActionFunctionArgs) {
+  const isDraft =
+    (await parseFormData(args.request.clone(), eventFormDataSchema)).intent ===
+    "draft";
+
   const result = await loadMutation(args, {
     query: actionQuery,
-    formDataSchema,
+    formDataSchema: isDraft ? eventDraftformDataSchema : eventFormDataSchema,
   });
 
   if (shouldSubmit(result) && result.data !== undefined) {
-    throw redirect(`/arr/${result.data.createEvent.id}`);
+    throw redirect(
+      isDraft ? `/arr/manage` : `/arr/${result.data.createEvent.id}`,
+    );
   }
 
   return json(result);
@@ -41,7 +51,7 @@ export default function CreateEventPage() {
     lastSubmission,
     shouldValidate: "onBlur",
     onValidate({ formData }) {
-      return parse(formData, { schema: formDataSchema });
+      return parse(formData, { schema: eventFormDataSchema });
     },
   });
 
@@ -58,10 +68,10 @@ export default function CreateEventPage() {
         <h2>Publish</h2>
         <CreateEventPublishFields formRef={form.ref} input={input} />
 
-        <button type="submit" name="intent" value="draft" disabled={true}>
+        <button type="submit" name={conform.INTENT} value="draft">
           Save Draft
         </button>
-        <button type="submit" name="intent" value="create">
+        <button type="submit" name={conform.INTENT} value="create">
           Create
         </button>
       </Form>
