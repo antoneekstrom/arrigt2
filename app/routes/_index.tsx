@@ -5,7 +5,7 @@ import { LoaderFunctionArgs } from "@remix-run/node";
 
 const loaderQuery = gql(`
     query HomePageLoader {
-      allEvents {
+      allPublishedEvents {
         id
         title
         dateTime
@@ -21,14 +21,13 @@ export function loader(args: LoaderFunctionArgs) {
 }
 
 export default function Home() {
-  const { data, errors } = useLoaderData<typeof loader>();
+  const { data } = useLoaderData<typeof loader>();
 
   return (
     <div>
       <h1>arrIgT</h1>
-      {errors?.map((error, i) => <div key={i}>{JSON.stringify(error)}</div>)}
       <ul>
-        {data?.allEvents.map((event) => (
+        {data?.allPublishedEvents.map((event) => (
           <li key={event.id}>
             <a href={`/arr/${event.id}`}>{event.title}</a>
           </li>
