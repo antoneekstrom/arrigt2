@@ -17,7 +17,7 @@ export function shouldSubmit<TSubmission extends Submission>(
   value: NonNullable<TSubmission["value"]>;
 } {
   return (
-    submission.intent === "submit" &&
+    submission.intent !== "validate" &&
     submission.value !== undefined &&
     submission.value !== null
   );
