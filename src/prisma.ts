@@ -7,8 +7,8 @@ import {
   DefaultArgs,
   PrismaClientOptions,
 } from "@prisma/client/runtime/library";
-import { PrismaErrorExtension } from "./model/extensions/PrismaErrorExtension";
 import { ValidationErrorExtension } from "./model/extensions/ValidationErrorExtension";
+import { PrismaErrorExtension } from "./model/extensions/PrismaErrorExtension";
 
 /**
  * Can be either a PrismaClient or a PrismaClient with extensions.
@@ -22,8 +22,8 @@ export type AnyPrismaClient = PrismaClient<
 /**
  * Prisma client singleton instance.
  */
-const prisma = new PrismaClient({})
-  .$extends(PrismaErrorExtension)
-  .$extends(ValidationErrorExtension);
+const prisma = new PrismaClient()
+  .$extends(ValidationErrorExtension)
+  .$extends(PrismaErrorExtension);
 
 export default prisma;
