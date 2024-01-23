@@ -22,16 +22,20 @@ describe("Parse event schema", () => {
   const missingSomeData: Partial<typeof valid> = {
     ...valid,
   };
-  delete missingSomeData.opensForRegistrationsAt;
+  delete missingSomeData.location;
 
   it("should be valid", () => {
-    expect(() => Events.assertEventIsValid(valid)).not.toThrowError();
+    expect(() =>
+      Events.EventSchemaWithConstraints.parse(valid),
+    ).not.toThrowError();
   });
 
   it("should be invalid if missing some data", () => {
-    expect(() => Events.assertEventIsValid(invalidDateTime)).toThrowError();
     expect(() =>
-      Events.assertEventIsValid(missingSomeData as typeof valid),
+      Events.EventSchemaWithConstraints.parse(invalidDateTime),
+    ).toThrowError();
+    expect(() =>
+      Events.EventSchemaWithConstraints.parse(missingSomeData as typeof valid),
     ).toThrowError();
   });
 });
