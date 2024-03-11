@@ -10,7 +10,7 @@ services:
       - .env
       - .env.local
     ports:
-      - "4000:4000"
+      - 4000:4000
   arrigt-db:
     restart: unless-stopped
     image: postgres:16.1
@@ -18,7 +18,5 @@ services:
       - .env
       - .env.local
     ports:
-      - "${DB_PORT}:${DB_PORT}"
+      - ${DB_PORT}:${DB_PORT}
 
-networks:
-  default:
