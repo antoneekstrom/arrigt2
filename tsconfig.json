@@ -3,6 +3,7 @@
     // modules
     "esModuleInterop": true,
     "allowSyntheticDefaultImports": true,
+    "module": "ESNext",
     "moduleResolution": "bundler",
     "moduleDetection": "force",
     "isolatedModules": true,
@@ -35,6 +36,7 @@
     "./src",
     "./app",
     "./test",
+    "env.d.ts"
   ],
   "files": [
     "./build/index.js"
