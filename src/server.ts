@@ -3,8 +3,8 @@
  */
 
 import express, { Express } from "express";
-import { yogaRequestHandler } from "./yoga.ts";
-import { remixReady, remixRequestHandler } from "./remix.ts";
+import { addYoga, yogaRequestHandler } from "./yoga.ts";
+import { addRemix } from "./remix.ts";
 import { createServer, Server } from "http";
 /**
  * Returns the configured express server instance.
@@ -15,25 +15,10 @@ export default function serve() {
 
   const httpServer = createHttpServer(app);
 
-  addYogaRequestHandler(app);
-  addRemixRequestHandler(app);
+  addYoga(app);
+  addRemix(app);
 
   start(httpServer);
-}
-
-/**
- * Adds the yoga GraphQL request handler.
- */
-function addYogaRequestHandler(app: Express) {
-  app.all(yogaRequestHandler.graphqlEndpoint, yogaRequestHandler);
-}
-
-/**
- * Adds the remix request handler and serves the static frontend javascript that is emitted by remix.
- */
-function addRemixRequestHandler(app: Express) {
-  app.use(express.static("public"));
-  app.all("*", remixRequestHandler);
 }
 
 function start(httpServer: Server) {
@@ -47,11 +32,6 @@ function start(httpServer: Server) {
     console.info(`Listening on ${port}`);
     console.info(`Serving GraphQL at ${graphlEndpoint} 😎👌`);
     console.info(`Serving Remix at ${remixEndpoint} 😤🤘`);
-
-    // Enables hot module reloading in development mode.
-    if (process.env.NODE_ENV === "development") {
-      remixReady();
-    }
   });
 }
 

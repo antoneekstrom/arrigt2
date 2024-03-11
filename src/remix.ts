@@ -2,25 +2,40 @@
  * @file Configures and exports the remix request handler.
  */
 
+import express, { Express } from "express";
 import { createRequestHandler } from "@remix-run/express";
-import { broadcastDevReady } from "@remix-run/node";
-import * as build from "../build/index.js";
+
+const viteDevServer =
+  process.env.NODE_ENV === "production"
+    ? undefined
+    : await import("vite").then((vite) =>
+        vite.createServer({
+          server: { middlewareMode: true },
+        }),
+      );
 
 /**
- * Tells remix that the server is ready to receive requests.
- * Should be called after the server has started, and only in development mode. Enables HMR and HDR.
+ * Adds the remix request handler and serves the static frontend javascript that is emitted by remix.
  */
-export function remixReady() {
-  broadcastDevReady(build as never);
+export async function addRemix(app: Express) {
+  if (viteDevServer) {
+    app.use(viteDevServer.middlewares);
+  } else {
+    app.use(
+      "/assets",
+      express.static("build/client/assets", {
+        immutable: true,
+        maxAge: "1y",
+      }),
+    );
+  }
+  app.use(express.static("build/client", { maxAge: "1h" }));
+  app.all(
+    "*",
+    createRequestHandler({
+      build: viteDevServer
+        ? () => viteDevServer.ssrLoadModule("virtual:remix/server-build")
+        : await import("./build/server/index.js"),
+    }),
+  );
 }
-
-/**
- * Handles requests for the remix frontend.
- */
-export const remixRequestHandler = createRequestHandler({
-  build: build as never,
-  mode: build.mode,
-  getLoadContext() {
-    return {};
-  },
-});

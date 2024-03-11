@@ -2,6 +2,7 @@
  * @file Configures and exports the GraphQL Yoga request handler.
  */
 
+import { Express } from "express";
 import { createPubSub, createYoga, YogaInitialContext } from "graphql-yoga";
 import schema from "./schema";
 
@@ -31,6 +32,13 @@ export const yogaRequestHandler = createYoga({
   graphqlEndpoint: process.env.ENDPOINT_GRAPHQL,
   context: createInitialContext(),
 });
+
+/**
+ * Adds the yoga GraphQL request handler.
+ */
+export function addYoga(app: Express) {
+  app.all(yogaRequestHandler.graphqlEndpoint, yogaRequestHandler);
+}
 
 /**
  * Describes the GraphQL context.
