@@ -1,47 +1,28 @@
 {
+  "include": [
+    "**/*.ts",
+    "**/*.tsx",
+    "**/.server/**/*.ts",
+    "**/.server/**/*.tsx",
+    "**/.client/**/*.ts",
+    "**/.client/**/*.tsx"
+  ],
   "compilerOptions": {
-    // modules
-    "esModuleInterop": true,
-    "allowSyntheticDefaultImports": true,
-    "module": "ESNext",
-    "moduleResolution": "bundler",
-    "moduleDetection": "force",
-    "isolatedModules": true,
-    "allowImportingTsExtensions": true,
-    "forceConsistentCasingInFileNames": true,
-    // build
-    "lib": [
-      "DOM",
-      "DOM.Iterable",
-      "ES2022"
-    ],
+    "lib": [ "DOM", "DOM.Iterable", "ES2022" ],
+    "types": [ "@remix-run/node", "vite/client" ],
     "target": "ES2022",
-    "allowJs": true,
-    // compilation
     "jsx": "react-jsx",
+    "allowJs": true,
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "esModuleInterop": true,
+    "isolatedModules": true,
+    "resolveJsonModule": true,
     "noEmit": true,
-    "downlevelIteration": true,
-    // type-checking
+    
     "strict": true,
     "skipLibCheck": true,
     "noUncheckedIndexedAccess": true,
-    "types": [
-      "bun-types",
-      "@remix-run/dev",
-      "@remix-run/node",
-      "@remix-run/express"
-    ]
-  },
-  "include": [
-    "./src",
-    "./app",
-    "./test",
-    "env.d.ts"
-  ],
-  "files": [
-    "./build/index.js"
-  ],
-  "exclude": [
-    "**/node_modules"
-  ]
+    "forceConsistentCasingInFileNames": true,
+  }
 }
