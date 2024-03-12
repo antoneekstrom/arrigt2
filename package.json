@@ -3,7 +3,9 @@
   "type": "module",
   "module": "src/index.ts",
   "scripts": {
-    "dev": "cross-env NODE_ENV=development remix dev -c \"tsx src/index.ts\"",
+    "dev": "cross-env NODE_ENV=development tsx src/index.ts",
+    "start": "cross-env NODE_ENV=production tsx src/index.ts",
+    "build": "remix vite:build",
     "migrate:dev": "prisma migrate dev",
     "test:unit": "vitest --config vite.config.unit.ts --coverage",
     "test:integration": "vitest --config vite.config.integration.ts --coverage",
@@ -15,13 +17,10 @@
     "generate": "bun generate:prisma && bun generate:codegen",
     "generate:codegen": "graphql-codegen",
     "generate:codegen:watch": "graphql-codegen --watch",
-    "generate:prisma": "prisma generate",
-    "start": "node build/bundle.cjs",
-    "build:remix": "remix build",
-    "build:bundle": "esbuild src/index.ts --bundle --platform=node --outfile=build/bundle.cjs"
+    "generate:prisma": "prisma generate"
   },
   "engines": {
-    "node": "~20.9.0"
+    "node": "v21.2.0"
   },
   "dependencies": {
     "@conform-to/react": "0.9.1",
@@ -42,7 +41,7 @@
     "graphql-sse": "2.4.0",
     "graphql-subscriptions": "2.0.0",
     "graphql-yoga": "5.0.0",
-    "isbot": "3.7.1",
+    "isbot": "^5.1.1",
     "prisma": "^5.7.1",
     "react": "18.2.0",
     "react-dom": "18.2.0",

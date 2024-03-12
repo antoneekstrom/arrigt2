@@ -3,9 +3,10 @@
  */
 
 import express, { Express } from "express";
-import { addYoga, yogaRequestHandler } from "./yoga.ts";
-import { addRemix } from "./remix.ts";
+import { addYoga, yogaRequestHandler } from "./yoga";
+import { addRemix } from "./remix";
 import { createServer, Server } from "http";
+
 /**
  * Returns the configured express server instance.
  * This includes the graphql and remix request handlers.

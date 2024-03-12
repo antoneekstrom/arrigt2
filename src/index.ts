@@ -2,6 +2,6 @@
  * @file Entrypoint for the application.
  */
 
-import serve from "./server.ts";
+import serve from "./server";
 
 serve();

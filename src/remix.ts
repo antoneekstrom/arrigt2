@@ -4,6 +4,7 @@
 
 import express, { Express } from "express";
 import { createRequestHandler } from "@remix-run/express";
+import { ServerBuild } from "@remix-run/node";
 
 const viteDevServer =
   process.env.NODE_ENV === "production"
@@ -34,8 +35,11 @@ export async function addRemix(app: Express) {
     "*",
     createRequestHandler({
       build: viteDevServer
-        ? () => viteDevServer.ssrLoadModule("virtual:remix/server-build")
-        : await import("./build/server/index.js"),
+        ? () =>
+            viteDevServer.ssrLoadModule(
+              "virtual:remix/server-build",
+            ) as Promise<ServerBuild>
+        : ((await import("../build/server/index.js")) as ServerBuild),
     }),
   );
 }
