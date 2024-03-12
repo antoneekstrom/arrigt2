@@ -14,6 +14,8 @@ import { createServer, Server } from "http";
 export default function serve() {
   const app = express();
 
+  app.disable("x-powered-by");
+
   const httpServer = createHttpServer(app);
 
   addYoga(app);
