@@ -1,23 +1,13 @@
 import { Link, useLoaderData } from "@remix-run/react";
-import { gql } from "../__generated__/graphql";
-import { loadQuery } from "../helpers/form.server";
-import { LoaderFunctionArgs } from "@remix-run/node";
+import { client } from "../helpers/db.server";
 
-const loaderQuery = gql(`
-    query HomePageLoader {
-      allPublishedEvents {
-        id
-        title
-        dateTime
-        location
-      }
-    }
-`);
-
-export function loader(args: LoaderFunctionArgs) {
-  return loadQuery(args, {
-    query: loaderQuery,
-  });
+export async function loader() {
+  const allPublishedEvents = await client.event.all();
+  return {
+    data: {
+      allPublishedEvents,
+    },
+  };
 }
 
 export default function Home() {
