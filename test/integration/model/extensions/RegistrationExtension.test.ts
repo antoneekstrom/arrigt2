@@ -9,8 +9,8 @@ import {
 import * as Events from "../../../../src/model/events";
 import * as Registrations from "../../../../src/model/registrations";
 import prisma from "../../../../src/prisma";
-import { EventExtension } from "../../../../src/model/extensions/EventExtension";
-import { RegistrationExtension } from "../../../../src/model/extensions/RegistrationExtension";
+import { EventExtension } from "../../../../src/prisma/extensions/EventExtension";
+import { RegistrationExtension } from "../../../../src/prisma/extensions/RegistrationExtension";
 
 describe("Register to event", () => {
   const event = Events.EventSchemaWithConstraints.parse({
