@@ -3,7 +3,7 @@
  */
 
 import express, { Express } from "express";
-import { addYoga, yogaRequestHandler } from "./yoga";
+import { yogaRequestHandler } from "./yoga";
 import { addRemix } from "./remix";
 import { createServer, Server } from "http";
 
@@ -18,7 +18,7 @@ export default function serve() {
 
   const httpServer = createHttpServer(app);
 
-  addYoga(app);
+  // addYoga(app);
   addRemix(app);
 
   start(httpServer);

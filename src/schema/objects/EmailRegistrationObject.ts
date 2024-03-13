@@ -2,30 +2,16 @@
  * @file Configures and exports the `EmailRegistration` object type.
  */
 
-import { EmailRegistration } from "@prisma/client";
-import builder from "../builder.ts";
-import { subscribeObjectType } from "../helpers.ts";
-import { ContactInfoInput } from "./ContactInfoObject.ts";
-import { EventObjectType } from "./EventObject.ts";
-import { PersonalInfoInput } from "./PersonalInfoObject.ts";
-import prisma from "../../prisma.ts";
-import { RegistrationExtension } from "../../model/extensions/RegistrationExtension.ts";
+import builder from "../builder";
+import { ContactInfoInput } from "./ContactInfoObject";
+import { EventObjectType } from "./EventObject";
+import { PersonalInfoInput } from "./PersonalInfoObject";
+import prisma from "../../prisma";
+import { RegistrationExtension } from "../../prisma/extensions/RegistrationExtension.js";
 
 export const EmailRegistrationObjectType = builder.prismaObject(
   "EmailRegistration",
   {
-    subscribe: subscribeObjectType<EmailRegistration>(
-      (registration) => registration.email,
-      ({ eventId, email }) =>
-        prisma.emailRegistration.findUniqueOrThrow({
-          where: {
-            email_eventId: {
-              email,
-              eventId,
-            },
-          },
-        }),
-    ),
     fields: (t) => ({
       event: t.relation("event"),
       contactInfo: t.relation("contactInfo"),
@@ -126,7 +112,6 @@ builder.mutationFields((t) => ({
     resolve: async (query, _parent, { eventId, input }) =>
       prisma.$extends(RegistrationExtension).emailRegistration.registerTo({
         event: eventId,
-        email: input.contactInfo.email,
         contactInfo: input.contactInfo,
         personalInfo: input.personalInfo ?? undefined,
       }),

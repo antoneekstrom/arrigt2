@@ -12,13 +12,13 @@ import ComplexityPlugin from "@pothos/plugin-complexity";
 import SmartSubscriptionsPlugin, {
   subscribeOptionsFromIterator,
 } from "@pothos/plugin-smart-subscriptions";
-import { YogaContext } from "../yoga.ts";
-import prisma from "../prisma.ts";
+import { YogaContext } from "../yoga";
 import {
   DateTimeResolver,
   EmailAddressResolver,
   UUIDResolver,
 } from "graphql-scalars";
+import { PrismaClient } from "@prisma/client";
 
 /**
  * Describes the types that are available in the schema.
@@ -50,7 +50,7 @@ const builder = new SchemaBuilder<SchemaTypes>({
     }),
   },
   prisma: {
-    client: prisma,
+    client: new PrismaClient(),
     filterConnectionTotalCount: true,
     onUnusedQuery: process.env.NODE_ENV === "production" ? null : "warn",
   },

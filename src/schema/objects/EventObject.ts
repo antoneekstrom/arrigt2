@@ -2,28 +2,19 @@
  * @file Configures and exports the `Event` object type.
  */
 
-import builder from "../builder.ts";
-import { hasEventClosed, hasEventOpened } from "../../model/events.ts";
-import { canRegisterToEvent } from "../../model/registrations.ts";
-import { subscribeObjectType } from "../helpers.ts";
-import { Event } from "@prisma/client";
-import prisma from "../../prisma.ts";
-import { EventExtension } from "../../model/extensions/EventExtension.ts";
-import * as Events from "../../model/events.ts";
+import builder from "../builder";
+import { hasEventClosed, hasEventOpened } from "../../model/events";
+import { canRegisterToEvent } from "../../model/registrations";
+import prisma from "../../prisma";
+import { EventExtension } from "../../prisma/extensions/EventExtension";
+import * as Events from "../../model/events";
 import {
   PrismaClientInitializationError,
   PrismaClientKnownRequestError,
 } from "@prisma/client/runtime/library";
 import { GraphQLError } from "graphql";
-import { ValidationErrorExtension } from "../../model/extensions/ValidationErrorExtension.ts";
-
-const subscribe = subscribeObjectType<Event>(
-  (event) => event.id,
-  ({ id }) => prisma.event.findUniqueOrThrow({ where: { id } }),
-);
 
 export const EventObjectType = builder.prismaObject("Event", {
-  subscribe,
   fields: (t) => ({
     id: t.expose("id", { type: "UUID" }),
     title: t.exposeString("title"),
@@ -144,9 +135,7 @@ builder.mutationFields((t) => ({
       input: t.arg({ type: CreateEventInput }),
     },
     resolve: async (query, _parent, { input }) => {
-      const client = prisma
-        .$extends(ValidationErrorExtension)
-        .$extends(EventExtension);
+      const client = prisma.$extends(EventExtension);
       try {
         return await client.event.create({
           ...query,

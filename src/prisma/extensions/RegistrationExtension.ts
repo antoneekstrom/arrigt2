@@ -1,12 +1,12 @@
 import { Prisma } from "@prisma/client";
-import * as registrations from "../registrations";
-import type { EmailRegistrationSchema } from "../registrations";
+import * as registrations from "../../model/registrations";
+import type { EmailRegistrationSchema } from "../../model/registrations";
 
 export const RegistrationExtension = Prisma.defineExtension({
   model: {
     emailRegistration: {
       async registerTo(data: EmailRegistrationSchema) {
-        const ctx = Prisma.getExtensionContext<typeof this>(this);
+        const ctx = Prisma.getExtensionContext(this);
 
         return ctx.$parent.$transaction(async (prisma) => {
           const event = await prisma.event.findUniqueOrThrow({
@@ -42,12 +42,7 @@ export const RegistrationExtension = Prisma.defineExtension({
           });
         });
       },
-      async exists(
-        where: Prisma.Args<
-          Prisma.EmailRegistrationDelegate,
-          "findUnique"
-        >["where"],
-      ) {
+      async exists(where: Prisma.Args<typeof this, "findUnique">["where"]) {
         const ctx = Prisma.getExtensionContext(this);
         const result = await ctx.findUnique({
           where,

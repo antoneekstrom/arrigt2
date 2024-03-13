@@ -1,8 +1,8 @@
-import type { EventSchema } from "../events";
+import type { EventSchema } from "../../model/events";
 import { Prisma } from "@prisma/client";
 import { Event } from "@prisma/client";
-import * as Events from "../events";
-import * as registrations from "../registrations";
+import * as Events from "../../model/events";
+import * as registrations from "../../model/registrations";
 import { z } from "zod";
 
 export const EventExtension = Prisma.defineExtension({
@@ -38,6 +38,10 @@ export const EventExtension = Prisma.defineExtension({
   },
   model: {
     event: {
+      all() {
+        const ctx = Prisma.getExtensionContext(this);
+        return ctx.findMany();
+      },
       edit(
         where: Prisma.Args<Prisma.EventDelegate, "update">["where"],
         data: Partial<z.output<typeof EventSchema>>,
