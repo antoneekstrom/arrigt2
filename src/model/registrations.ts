@@ -27,7 +27,6 @@ export const PersonalInfoSchema = z.object({
 });
 
 export const EmailRegistrationSchema = z.object({
-  email: z.string().email(),
   event: z.string().uuid(),
   contactInfo: ContactInfoSchema,
   personalInfo: PersonalInfoSchema.optional(),
@@ -48,7 +47,7 @@ export function openRegistrations() {
 
 export function canRegisterToEvent(
   event: Pick<
-    EventSchema,
+    z.output<typeof EventSchema>,
     "isPublishedAt" | "opensForRegistrationsAt" | "closesForRegistrationsAt"
   >,
   now = new Date(Date.now()),
