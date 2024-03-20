@@ -11,8 +11,6 @@ jobs:
       - uses: oven-sh/setup-bun@v1
       - name: Install Dependencies
         run: bun install
-      - name: Generate Code
-        run: bun generate
       - name: Lint
         run: bun lint
   run-format:
