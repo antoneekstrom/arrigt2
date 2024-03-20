@@ -1,5 +1,4 @@
 import { describe, expect, it } from "vitest";
-import { UUIDMock } from "graphql-scalars";
 import {
   inFourWeeks,
   inOneDay,
@@ -41,7 +40,6 @@ describe("Register to event", () => {
     const addedRegistration = await prisma
       .$extends(RegistrationExtension)
       .emailRegistration.registerTo({
-        email: contactInfoInput.email,
         event: addedEvent.id,
         contactInfo: contactInfoInput,
       });
@@ -72,7 +70,7 @@ describe("Register to event", () => {
   });
 
   it("should not create registration if event with the id does not exist", async () => {
-    const nonExistingEventId = UUIDMock();
+    const nonExistingEventId = crypto.randomUUID();
 
     expect(
       prisma.$extends(RegistrationExtension).emailRegistration.create({
@@ -108,7 +106,6 @@ describe("Register to event", () => {
     const addedRegistration = await prisma
       .$extends(RegistrationExtension)
       .emailRegistration.registerTo({
-        email: contactInfoInput.email,
         event: addedEvent.id,
         contactInfo: contactInfoInput,
       });
@@ -118,7 +115,6 @@ describe("Register to event", () => {
     expect(
       prisma.$extends(RegistrationExtension).emailRegistration.registerTo({
         event: addedEvent.id,
-        email: contactInfoInput.email,
         contactInfo: contactInfoInput,
       }),
     ).rejects.toThrowError();
@@ -157,7 +153,6 @@ describe("Register to event", () => {
       prisma.$extends(RegistrationExtension).emailRegistration.registerTo({
         event: addedEvent.id,
         contactInfo: contactInfoInput,
-        email: contactInfoInput.email,
       }),
     ).rejects.toThrowError();
 

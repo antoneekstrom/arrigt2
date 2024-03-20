@@ -3,7 +3,6 @@
  */
 
 import express, { Express } from "express";
-import { yogaRequestHandler } from "./yoga";
 import { addRemix } from "./remix";
 import { createServer, Server } from "http";
 
@@ -27,13 +26,11 @@ export default function serve() {
 function start(httpServer: Server) {
   const port = process.env.PORT_BACKEND ?? 4000;
   const host = "http://localhost";
-  const graphlEndpoint = `${host}:${port}${yogaRequestHandler.graphqlEndpoint}`;
   const remixEndpoint = `${host}:${port}`;
 
   httpServer.listen(port, () => {
     console.info(`Running in ${process.env.NODE_ENV} mode`);
     console.info(`Listening on ${port}`);
-    console.info(`Serving GraphQL at ${graphlEndpoint} 😎👌`);
     console.info(`Serving Remix at ${remixEndpoint} 😤🤘`);
   });
 }
