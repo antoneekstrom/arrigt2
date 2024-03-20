@@ -8,7 +8,7 @@ export default defineConfig({
   test: {
     include: ["test/integration/**/*.test.ts"],
     setupFiles: ["test/integration/setup.ts"],
-    threads: false,
+    // threads: false,
     reporters: ["json", "default"],
     outputFile: {
       json: "reports/integration/integration.json",
@@ -18,6 +18,11 @@ export default defineConfig({
       reporter: ["json", "json-summary"],
       reportOnFailure: true,
       reportsDirectory: "reports/integration/coverage",
+    },
+    poolOptions: {
+      threads: {
+        singleThread: true,
+      },
     },
   },
 });
