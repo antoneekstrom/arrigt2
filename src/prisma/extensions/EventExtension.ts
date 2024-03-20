@@ -1,6 +1,5 @@
 import type { EventSchema } from "../../model/events";
-import { Prisma } from "@prisma/client";
-import { Event } from "@prisma/client";
+import { Event, Prisma } from "@prisma/client";
 import * as Events from "../../model/events";
 import * as registrations from "../../model/registrations";
 import { z } from "zod";

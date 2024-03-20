@@ -1,5 +1,4 @@
-import { it } from "vitest";
-import { describe, expect } from "vitest";
+import { it, describe, expect } from "vitest";
 import { now, oneDayAgo, inOneDay } from "../common/dateTime";
 import * as Registrations from "./registrations";
 

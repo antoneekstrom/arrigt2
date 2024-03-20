@@ -1,5 +1,4 @@
-import { expect } from "vitest";
-import { describe, it } from "vitest";
+import { expect, describe, it } from "vitest";
 import * as Events from "./events";
 import {
   inOneDay,
