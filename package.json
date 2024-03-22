@@ -4,7 +4,7 @@
   "module": "src/index.ts",
   "scripts": {
     "migrate": "prisma migrate dev",
-    "generate:prisma": "prisma generate",
+    "generate": "prisma generate",
     "dev": "cross-env NODE_ENV=development node --loader tsm src/index.ts",
     "format": "prettier . --check",
     "format:fix": "prettier . --write",

@@ -1,55 +1,41 @@
 ## Development
 
-Bun is required to build and run the system locally.
+Node.js is required to run the application, the recommended version is specified in `package.json`.
+The program is compiled and bundled by Vite, using the Remix plugin for Vite. 
 
-Install dependencies:
+### Configuration
 
-```shell
-bun install
-```
+Before starting the application after cloning the project, you will need to install dependencies
+with `npm i` as well as generating code with `npm run generate`. After this you can either run a
+development server with `npm run dev` or build for production by executing `npm run build` and
+then running the server with `npm run start`.
 
-Start development server with hot-reload:
-
-```shell
-bun dev
-```
+The application also requires a database to function properly, which is covered in the next section.
 
 ### Database
 
-Docker is required to run the database locally.
-
-Start only the container with the database from `docker-compose.yaml`:
-
-```shell
-docker compose up -d --build arrigt-db
-```
-
-Apply migrations:
-
-```shell
-bun run migrate:dev
-```
-
-## Production
-
-Build for production and run:
-
-```shell
-bun build && bun start
-```
+Docker can be used to run the database locally. The `docker-compose.yaml` file specifies a properly
+configured PostgreSQL database which can be start individually with `docker compose up -d --build arrigt-db
+`.
 
 ## Integration
 
-Linting, formatting, and testing is automatically performed by GitHub Actions on pull requests to the `main` branch.
+Linting, formatting, and testing is automatically performed by GitHub Actions on pull requests to
+the `main` branch.
 
-- Run ESLint manually with `bun run lint` or `bun run lint:fix`
-- Run Prettier manually with `bun run format` or `bun run format:fix`
-- Run Vitest manually with `bun run test` or `bun run test:coverage`
-- Run Stryker manually with `bun run test:mutation`
+- Lint with `npm run lint` or `npm run lint:fix`
+- Format with `npm run format` or `npm run format:fix`
+- Run unit tests with `npm run test:unit`
+- Run integration tests with `npm run test:integration`
+- Run mutation tests with `npm run test:mutation`
 
 ## Deployment
 
-The system can be built for production and deployed using Docker. The `docker-compose.yaml` runs the following
+The application can be built for production and deployed using Docker. The `docker-compose.yaml`
+starts the following services:
+
+- Remix webserver
+- PostgreSQL database
 
 Build the docker images:
 
@@ -63,6 +49,3 @@ Run the containers:
 docker compose up -d
 ```
 
-## Documents
-
-Specification and documentation resides in the `./docs` directory of the project.
