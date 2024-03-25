@@ -1,27 +1,33 @@
 import { describe, expect, it } from "vitest";
-import {
-  inFourWeeks,
-  inOneDay,
-  inOneWeek,
-  now,
-} from "../../../../src/common/dateTime";
 import * as Events from "../../../../src/model/events";
 import * as Registrations from "../../../../src/model/registrations";
 import prisma from "../../../../src/prisma";
-import { EventExtension } from "../../../../src/prisma/extensions/EventExtension";
-import { RegistrationExtension } from "../../../../src/prisma/extensions/RegistrationExtension";
+import { DataAgreement } from "@prisma/client";
+
+const today = new Date("2001-06-01");
+const tomorrow = new Date("2001-06-02");
+const nextWeek = new Date("2001-06-08");
+const nextMonth = new Date("2001-07-01");
+
+const agreement: DataAgreement = {
+  id: crypto.randomUUID(),
+  contactEmail: "plupp@email.com",
+  dataStored: [],
+  parties: [],
+  deleteAt: nextMonth,
+};
 
 describe("Register to event", () => {
-  const event = Events.EventSchemaWithConstraints.parse({
+  const event = Events.EventInputSchema.parse({
     title: "Apa",
     location: "Plupp Snor",
-    dateTime: inFourWeeks(),
-    isPublishedAt: now(),
-    opensForRegistrationsAt: inOneDay(),
-    closesForRegistrationsAt: inOneWeek(),
+    dateTime: nextMonth,
+    isPublishedAt: today,
+    opensForRegistrationsAt: tomorrow,
+    closesForRegistrationsAt: nextWeek,
   });
 
-  const contactInfoInput: Registrations.ContactInfoSchema = {
+  const contactInfoInput = {
     email: "plupp@snor.com",
     firstName: "Plupp",
     lastName: "Snor",
@@ -30,24 +36,21 @@ describe("Register to event", () => {
   };
 
   it("should find the registration that was added on the event", async () => {
-    const addedEvent = await prisma.event.create({ data: event });
+    const addedEvent = await prisma.event.createWithAgreement(event, agreement);
     expect(addedEvent).toBeDefined();
 
     await prisma
-      .$extends(EventExtension)
+      .$extends(Events.EventsModel)
       .event.openRegistrations({ id: addedEvent.id });
 
     const addedRegistration = await prisma
-      .$extends(RegistrationExtension)
-      .emailRegistration.registerTo({
-        event: addedEvent.id,
-        contactInfo: contactInfoInput,
-      });
+      .$extends(Registrations.RegistrationsModel)
+      .registration.createWithEmail(addedEvent.id, contactInfoInput);
     expect(addedRegistration).toBeDefined();
 
     const exists = await prisma
-      .$extends(RegistrationExtension)
-      .emailRegistration.exists({
+      .$extends(Registrations.RegistrationsModel)
+      .registration.exists({
         email_eventId: {
           email: contactInfoInput.email,
           eventId: addedEvent.id,
@@ -56,8 +59,8 @@ describe("Register to event", () => {
     expect(exists).toBe(true);
 
     const found = await prisma
-      .$extends(RegistrationExtension)
-      .emailRegistration.findUniqueOrThrow({
+      .$extends(Registrations.RegistrationsModel)
+      .registration.findUniqueOrThrow({
         where: {
           email_eventId: {
             email: contactInfoInput.email,
@@ -73,17 +76,18 @@ describe("Register to event", () => {
     const nonExistingEventId = crypto.randomUUID();
 
     expect(
-      prisma.$extends(RegistrationExtension).emailRegistration.create({
-        data: {
+      prisma
+        .$extends(Registrations.RegistrationsModel)
+        .registration.createWithEmail(nonExistingEventId, {
           email: contactInfoInput.email,
-          eventId: nonExistingEventId,
-        },
-      }),
+          firstName: "apa",
+          lastName: "snor",
+        }),
     ).rejects.toThrowError();
 
     const exists = await prisma
-      .$extends(RegistrationExtension)
-      .emailRegistration.exists({
+      .$extends(Registrations.RegistrationsModel)
+      .registration.exists({
         email_eventId: {
           eventId: nonExistingEventId,
           email: contactInfoInput.email,
@@ -95,33 +99,29 @@ describe("Register to event", () => {
 
   it("should not create registration if there already exists a registration with that email on the event", async () => {
     const addedEvent = await prisma
-      .$extends(EventExtension)
-      .event.create({ data: event });
+      .$extends(Events.EventsModel)
+      .event.createWithAgreement(event, agreement);
     expect(addedEvent).toBeDefined();
 
     await prisma
-      .$extends(EventExtension)
+      .$extends(Events.EventsModel)
       .event.openRegistrations({ id: addedEvent.id });
 
     const addedRegistration = await prisma
-      .$extends(RegistrationExtension)
-      .emailRegistration.registerTo({
-        event: addedEvent.id,
-        contactInfo: contactInfoInput,
-      });
+      .$extends(Registrations.RegistrationsModel)
+      .registration.createWithEmail(addedEvent.id, contactInfoInput);
 
     expect(addedRegistration).toBeDefined();
 
     expect(
-      prisma.$extends(RegistrationExtension).emailRegistration.registerTo({
-        event: addedEvent.id,
-        contactInfo: contactInfoInput,
-      }),
+      prisma
+        .$extends(Registrations.RegistrationsModel)
+        .registration.createWithEmail(addedEvent.id, contactInfoInput),
     ).rejects.toThrowError();
 
     const exists = await prisma
-      .$extends(RegistrationExtension)
-      .emailRegistration.exists({
+      .$extends(Registrations.RegistrationsModel)
+      .registration.exists({
         email_eventId: {
           eventId: addedEvent.id,
           email: contactInfoInput.email,
@@ -131,8 +131,8 @@ describe("Register to event", () => {
     expect(exists).toBe(true);
 
     const found = await prisma
-      .$extends(RegistrationExtension)
-      .emailRegistration.findMany({
+      .$extends(Registrations.RegistrationsModel)
+      .registration.findMany({
         where: { eventId: addedEvent.id },
       });
     expect(found).toBeDefined();
@@ -141,24 +141,23 @@ describe("Register to event", () => {
 
   it("should not create registration if the event is closed", async () => {
     const addedEvent = await prisma
-      .$extends(EventExtension)
-      .event.create({ data: event });
+      .$extends(Events.EventsModel)
+      .event.createWithAgreement(event, agreement);
     expect(addedEvent).toBeDefined();
 
     await prisma
-      .$extends(EventExtension)
+      .$extends(Events.EventsModel)
       .event.closeRegistrations({ id: addedEvent.id });
 
     expect(
-      prisma.$extends(RegistrationExtension).emailRegistration.registerTo({
-        event: addedEvent.id,
-        contactInfo: contactInfoInput,
-      }),
+      prisma
+        .$extends(Registrations.RegistrationsModel)
+        .registration.createWithEmail(addedEvent.id, contactInfoInput),
     ).rejects.toThrowError();
 
     const exists = await prisma
-      .$extends(RegistrationExtension)
-      .emailRegistration.exists({
+      .$extends(Registrations.RegistrationsModel)
+      .registration.exists({
         email_eventId: {
           eventId: addedEvent.id,
           email: contactInfoInput.email,
@@ -168,8 +167,8 @@ describe("Register to event", () => {
     expect(exists).toBe(false);
 
     const found = await prisma
-      .$extends(RegistrationExtension)
-      .emailRegistration.findMany({
+      .$extends(Registrations.RegistrationsModel)
+      .registration.findMany({
         where: { eventId: addedEvent.id },
       });
     expect(found).toBeDefined();
