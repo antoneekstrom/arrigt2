@@ -1,13 +1,13 @@
-import { EventExtension } from "../../src/prisma/extensions/EventExtension";
-import { RegistrationExtension } from "../../src/prisma/extensions/RegistrationExtension";
 import { PrismaClient } from "@prisma/client";
+import { EventsModel } from "../../src/model/events";
+import { RegistrationsModel } from "../../src/model/registrations";
 
 /**
  * Exports the prisma client in a server-only remix module so that it does not leak into client browser or apply any side-effects multiple times.
  * @see https://remix.run/docs/en/main/guides/data-loading#databases
  */
 const client = new PrismaClient()
-  .$extends(EventExtension)
-  .$extends(RegistrationExtension);
+  .$extends(EventsModel)
+  .$extends(RegistrationsModel);
 
 export { client };

@@ -4,22 +4,18 @@ import { ActionFunctionArgs, LoaderFunctionArgs, json } from "@remix-run/node";
 import { z } from "zod";
 import { client } from "../helpers/db.server";
 import { parseWithZod } from "@conform-to/zod";
-import {
-  ContactInfoSchema,
-  PersonalInfoSchema,
-} from "../../src/model/registrations";
+import { AttendeeInputSchema } from "../../src/model/registrations";
 
 const paramSchema = z.object({ eventId: z.string().uuid() });
 
 const formInputSchema = z.object({
   input: z.object({
-    contactInfo: ContactInfoSchema,
-    personalInfo: PersonalInfoSchema.optional(),
+    attendee: AttendeeInputSchema,
   }),
 });
 
 export async function loader(args: LoaderFunctionArgs) {
-  const { eventId } = paramSchema.parse(args.params);
+  const { eventId } = paramSchema.parse(args.params); // TODO abstraction
 
   const result = await client.event.findUnique({
     where: {
@@ -32,21 +28,25 @@ export async function loader(args: LoaderFunctionArgs) {
 
 export async function action({ request, params }: ActionFunctionArgs) {
   const { eventId } = paramSchema.parse(params);
+
+  // TODO abstraction
   const submission = parseWithZod(await request.formData(), {
     schema: formInputSchema,
   });
 
+  // TODO abstraction
   if (submission.status !== "success") {
     return json(submission.reply(), {
       status: submission.status === "error" ? 400 : 200,
     });
   }
 
-  const result = await client.emailRegistration.registerTo({
-    ...submission.value.input,
-    event: eventId,
-  });
+  const result = await client.registration.createWithEmail(
+    eventId,
+    submission.value.input.attendee,
+  );
 
+  // TODO abstraction
   if (!result) {
     return json(submission.reply());
   }
@@ -70,14 +70,14 @@ export default function EventPage() {
     shouldValidate: "onBlur",
   });
 
-  const { contactInfo } = input.getFieldset();
-  const contactFields = contactInfo.getFieldset();
+  const { attendee } = input.getFieldset();
+  const attendeeFields = attendee.getFieldset();
 
   if (!eventById) {
     return null;
   }
 
-  const { hasClosed, hasOpened, canRegisterToEvent } = eventById;
+  const { canRegisterTo } = eventById;
 
   return (
     <div>
@@ -89,7 +89,7 @@ export default function EventPage() {
         <h2>{new Date(Date.parse(eventById.dateTime)).toDateString()}</h2>
       )}
 
-      {canRegisterToEvent && (
+      {canRegisterTo && (
         <fetcher.Form
           method="post"
           autoComplete="off"
@@ -97,61 +97,37 @@ export default function EventPage() {
           onSubmit={form.onSubmit}
         >
           <div>
-            <label htmlFor={contactFields.email.id}>Email</label>
-            <input {...getInputProps(contactFields.email, { type: "email" })} />
-            <div id={contactFields.email.errorId}>
-              {contactFields.email.errors}
+            <label htmlFor={attendeeFields.email.id}>Email</label>
+            <input
+              {...getInputProps(attendeeFields.email, { type: "email" })}
+            />
+            <div id={attendeeFields.email.errorId}>
+              {attendeeFields.email.errors}
             </div>
           </div>
           <div>
-            <label htmlFor={contactFields.firstName.id}>First Name</label>
+            <label htmlFor={attendeeFields.firstName.id}>First Name</label>
             <input
-              {...getInputProps(contactFields.firstName, { type: "text" })}
+              {...getInputProps(attendeeFields.firstName, { type: "text" })}
             />
-            <div id={contactFields.firstName.errorId}>
-              {contactFields.firstName.errors}
+            <div id={attendeeFields.firstName.errorId}>
+              {attendeeFields.firstName.errors}
             </div>
           </div>
           <div>
-            <label htmlFor={contactFields.lastName.id}>Last Name</label>
+            <label htmlFor={attendeeFields.lastName.id}>Last Name</label>
             <input
-              {...getInputProps(contactFields.lastName, { type: "text" })}
+              {...getInputProps(attendeeFields.lastName, { type: "text" })}
             />
-            <div id={contactFields.lastName.errorId}>
-              {contactFields.lastName.errors}
+            <div id={attendeeFields.lastName.errorId}>
+              {attendeeFields.lastName.errors}
             </div>
           </div>
 
           <input type="submit" value="Register" disabled={isLoading} />
 
           <div>{responseErrors}</div>
-          {eventById.closesForRegistrationsAt && (
-            <div>
-              This event closes for registrations on{" "}
-              {new Date(eventById.closesForRegistrationsAt).toDateString()}.
-            </div>
-          )}
         </fetcher.Form>
-      )}
-      {!hasOpened && !hasClosed && (
-        <div>
-          <p>Registrations are closed.</p>
-          <p>
-            This event opens for registrations on{" "}
-            {new Date(eventById.opensForRegistrationsAt).toDateString()}.
-          </p>
-        </div>
-      )}
-      {hasClosed && (
-        <div>
-          <p>Registrations are closed.</p>
-          {eventById.closesForRegistrationsAt && (
-            <p>
-              This event closed for registrations on{" "}
-              {new Date(eventById.closesForRegistrationsAt).toDateString()}.
-            </p>
-          )}
-        </div>
       )}
     </div>
   );
