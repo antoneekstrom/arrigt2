@@ -1,5 +1,6 @@
 import { expect, describe, it } from "vitest";
 import * as Events from "./events";
+import { z } from "zod";
 
 const yesterday = new Date("2001-05-30");
 const today = new Date("2001-06-01");
@@ -9,9 +10,9 @@ const nextWeek = new Date("2001-06-08");
 describe("Parse event schema", () => {
   const valid = Events.EventInputSchema.parse({
     title: "title",
-    location: "location",
     dateTime: nextWeek,
-  });
+    publishedAt: tomorrow,
+  } satisfies z.input<typeof Events.EventInputSchema>);
   const invalidDateTime: typeof valid = {
     ...valid,
     dateTime: yesterday,
