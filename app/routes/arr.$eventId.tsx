@@ -1,10 +1,13 @@
-import { Link, useFetcher, useLoaderData } from "@remix-run/react";
+import { useFetcher, useLoaderData } from "@remix-run/react";
 import { getInputProps, useForm } from "@conform-to/react";
 import { ActionFunctionArgs, LoaderFunctionArgs, json } from "@remix-run/node";
 import { z } from "zod";
 import { client } from "../helpers/db.server";
 import { parseWithZod } from "@conform-to/zod";
 import { AttendeeInputSchema } from "../../src/model/registrations";
+import { Input } from "../atoms/Input";
+import { InputLabel } from "../atoms/InputLabel";
+import { EventSummary } from "../molecules/EventSummary";
 
 const paramSchema = z.object({ eventId: z.string().uuid() });
 
@@ -81,13 +84,7 @@ export default function EventPage() {
 
   return (
     <div>
-      <Link to="/">Back to events</Link>
-      <Link to="manage">Manage event</Link>
-      <h1>{eventById.title}</h1>
-      <h2>{eventById.location}</h2>
-      {eventById.dateTime && (
-        <h2>{new Date(Date.parse(eventById.dateTime)).toDateString()}</h2>
-      )}
+      <EventSummary {...eventById} />
 
       {canRegisterTo && (
         <fetcher.Form
@@ -97,8 +94,8 @@ export default function EventPage() {
           onSubmit={form.onSubmit}
         >
           <div>
-            <label htmlFor={attendeeFields.email.id}>Email</label>
-            <input
+            <InputLabel htmlFor={attendeeFields.email.id}>Email</InputLabel>
+            <Input
               {...getInputProps(attendeeFields.email, { type: "email" })}
             />
             <div id={attendeeFields.email.errorId}>
@@ -106,8 +103,10 @@ export default function EventPage() {
             </div>
           </div>
           <div>
-            <label htmlFor={attendeeFields.firstName.id}>First Name</label>
-            <input
+            <InputLabel htmlFor={attendeeFields.firstName.id}>
+              First Name
+            </InputLabel>
+            <Input
               {...getInputProps(attendeeFields.firstName, { type: "text" })}
             />
             <div id={attendeeFields.firstName.errorId}>
@@ -115,8 +114,10 @@ export default function EventPage() {
             </div>
           </div>
           <div>
-            <label htmlFor={attendeeFields.lastName.id}>Last Name</label>
-            <input
+            <InputLabel htmlFor={attendeeFields.lastName.id}>
+              Last Name
+            </InputLabel>
+            <Input
               {...getInputProps(attendeeFields.lastName, { type: "text" })}
             />
             <div id={attendeeFields.lastName.errorId}>
