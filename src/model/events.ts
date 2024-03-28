@@ -6,9 +6,9 @@ import { z } from "zod";
  */
 export const EventInputSchema = z
   .object({
-    title: z.string(),
-    dateTime: z.date(),
-    publishedAt: z.date().nullable().default(null),
+    title: z.string().min(1),
+    dateTime: z.coerce.date(),
+    publishedAt: z.coerce.date().nullable().default(null),
     location: z.string().optional().nullable(),
     organizer: z.string().optional().nullable(),
   })
