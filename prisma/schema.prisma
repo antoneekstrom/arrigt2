@@ -2,10 +2,6 @@ generator client {
   provider = "prisma-client-js"
 }
 
-generator pothos {
-  provider = "prisma-pothos-types"
-}
-
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
@@ -13,63 +9,79 @@ datasource db {
 
 /// Represents an event. Event organizers can manage events. Visitors can register for events.
 model Event {
-  emailRegistrations EmailRegistration[]
+  Registrations Registration[] @relation
+  DataAgreement DataAgreement  @relation(fields: [dataAgreementId], references: [id])
 
-  id String @id @default(uuid())
+  id              String @id @default(uuid())
+  dataAgreementId Int
 
   /// Title of the event.
-  title    String
+  title     String
   /// Date and time of the event.
-  dateTime DateTime
+  dateTime  DateTime
   /// Location of the event.
-  location String
+  location  String?
+  /// Organizer of the event.
+  organizer String?
+  /// Organizer of the post.
+  author    String?
 
   /// Time when the record was created.
-  createdAt                DateTime  @default(now())
+  createdAt   DateTime  @default(now())
+  /// Time when the record was last updated.
+  updatedAt   DateTime  @default(now())
   /// Time when the event is published. If null, the event is considered a draft.
-  isPublishedAt            DateTime? @default(now())
-  /// Time when the event is opened for registrations.
-  opensForRegistrationsAt  DateTime  @default(now())
-  /// Time when the event is closed for registrations. If null, the closes when the event starts.
-  closesForRegistrationsAt DateTime?
+  publishedAt DateTime? @default(now())
+}
+
+/// Represents a GDPR data agreement.
+model DataAgreement {
+  Event Event[]
+
+  id Int @id @default(autoincrement())
+
+  deleteAt     DateTime
+  dataStored   String[]
+  parties      String[]
+  contactEmail String
 }
 
 /// Represents a person that has registered to an event by email.
 /// There can only exist one registration per email and event.
-model EmailRegistration {
-  event        Event         @relation(fields: [eventId], references: [id])
-  personalInfo PersonalInfo? @relation(fields: [personalInfoId], references: [id])
-  contactInfo  ContactInfo   @relation(fields: [email], references: [email])
+model Registration {
+  Event       Event        @relation(fields: [eventId], references: [id])
+  Attendee    Attendee     @relation(fields: [email], references: [email])
+  Preferences Preferences? @relation(fields: [preferencesId], references: [id], onDelete: Cascade)
 
-  eventId        String
-  personalInfoId String?
+  eventId       String
+  email         String
+  preferencesId String?
 
-  email     String
+  /// Time when the record was created.
   createdAt DateTime @default(now())
+  /// Time when the record was last updated.
+  updatedAt DateTime @default(now())
 
   @@id([email, eventId])
 }
 
-/// Represents the contact information of a person, that is registered to one or more events.
-model ContactInfo {
-  emailRegistrations EmailRegistration[]
+/// Contact information of a person that is registered to one or more events.
+model Attendee {
+  Registration Registration[]
 
-  id    String @id @default(uuid())
-  email String @unique
+  email String @id
 
-  firstName String
-  lastName  String
-
+  firstName     String
+  lastName      String
   firstNickName String?
   lastNickName  String?
 }
 
-/// Represents personal information about a registration, such as food preferences.
-model PersonalInfo {
-  emailRegistrations EmailRegistration[]
+model Preferences {
+  Registration Registration[]
 
-  id String @id @default(uuid())
-
-  allergies String[]
+  id        String   @id
   diet      String
+  allergies String[]
+  extra     String
 }

@@ -1,15 +1,12 @@
-import { expect } from "vitest";
-import { describe, it } from "vitest";
+import { expect, describe, it } from "vitest";
 import {
   inOneWeek,
   oneWeekAgo,
   inOneDay,
 } from "../../../../src/common/dateTime";
-import { EventExtension } from "../../../../src/model/extensions/EventExtension";
+import { EventExtension } from "../../../../src/prisma/extensions/EventExtension";
 import * as Events from "../../../../src/model/events";
 import prisma from "../../../../src/prisma";
-import { ValidationErrorExtension } from "../../../../src/model/extensions/ValidationErrorExtension";
-import { GraphQLError } from "graphql";
 
 describe("Create event", () => {
   const event = Events.EventSchemaWithConstraints.parse({
@@ -59,21 +56,6 @@ describe("Create event", () => {
     expect(edited).toBeDefined();
     expect(edited).not.toMatchObject(found);
     expect(edited.title).toBe(updateData.title);
-  });
-
-  it("should throw error when trying to create an invalid event", async () => {
-    const client = prisma
-      .$extends(ValidationErrorExtension)
-      .$extends(EventExtension);
-    await expect(
-      client.event.create({
-        data: {
-          title: "title",
-          location: "location",
-          dateTime: oneWeekAgo(),
-        },
-      }),
-    ).rejects.toThrowError(GraphQLError);
   });
 });
 

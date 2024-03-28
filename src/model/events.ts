@@ -1,129 +1,78 @@
-import { now } from "../common/dateTime";
+import { Event } from "@prisma/client";
 import { z } from "zod";
 
-export const EventSchema = z.object({
-  title: z.string(),
-  location: z.string().min(5),
-  dateTime: z.coerce.date(),
-  isPublishedAt: z.coerce.date().default(now()).nullable(),
-  opensForRegistrationsAt: z.coerce.date().default(now()),
-  closesForRegistrationsAt: z.coerce.date().optional().nullable(),
-});
-
-export const EventSchemaWithConstraints = EventSchema.required()
-  .refine(isEventOpeningBeforeClosing, {
-    message: "Event cannot close for registration before opening.",
-    path: ["closesForRegistrationsAt"],
+/**
+ * Validates user input for event objects.
+ */
+export const EventInputSchema = z
+  .object({
+    title: z.string().min(1),
+    dateTime: z.coerce.date(),
+    publishedAt: z.coerce.date().nullable().default(null),
+    location: z.string().optional().nullable(),
+    organizer: z.string().optional().nullable(),
   })
-  .refine(isEventOpeningBeforeStarting, {
-    message: "Event cannot start before opening for registration.",
-    path: ["dateTime"],
-  })
-  .refine(isEventPublishedBeforeClosing, {
-    message: "Event cannot close for registration before being published.",
-    path: ["closesForRegistrationsAt"],
-  })
-  .refine(isEventPublishedBeforeOpening, {
-    message: "Event cannot open for registration before being published.",
-    path: ["opensForRegistrationsAt"],
-  })
-  .refine(isEventPublishedBeforeStarting, {
+  .refine(isPublishedBeforeStarting, {
     message: "Event cannot start before being published.",
     path: ["dateTime"],
-  })
-  .refine(isEventClosingBeforeStarting, {
-    message: "Event cannot close for registration before starting.",
-    path: ["closesForRegistrationsAt"],
   });
 
-export function isEventDraft(
-  event: Pick<z.output<typeof EventSchema>, "isPublishedAt">,
-) {
-  return !event.isPublishedAt;
+export const DataAgreementInputSchema = z.object({
+  deleteAt: z.date(),
+  dataStored: z.string().array(),
+  parties: z.string().array(),
+  contactEmail: z.string().email(),
+});
+
+export function unpublish(event: z.input<typeof EventInputSchema>) {
+  return EventInputSchema.parse({
+    ...event,
+    dateTime: null,
+  });
 }
 
-export function hasEventBeenPublished(
-  event: Pick<z.output<typeof EventSchema>, "isPublishedAt">,
+export function publishAt(
+  event: z.input<typeof EventInputSchema>,
+  dateTime: Date,
+) {
+  return EventInputSchema.parse({
+    ...event,
+    dateTime,
+  });
+}
+
+/**
+ *
+ * @returns true if a user should be able to sign up for the given event
+ */
+export function canRegisterTo(event: Event, now = new Date(Date.now())) {
+  return isPublished(event, now);
+}
+
+/**
+ *
+ * @returns true if the event is considered a draft
+ */
+export function isDraft(event: Pick<Event, "publishedAt">) {
+  return !event.publishedAt;
+}
+
+/**
+ *
+ * @returns true if the event is published and publicly available to users
+ */
+export function isPublished(
+  event: Pick<Event, "publishedAt">,
   now = new Date(Date.now()),
 ) {
-  return !event.isPublishedAt || now >= event.isPublishedAt;
+  return !event.publishedAt || now >= event.publishedAt;
 }
 
-export function hasEventOpened(
-  event: Pick<z.output<typeof EventSchema>, "opensForRegistrationsAt">,
-  now = new Date(Date.now()),
+/**
+ * @returns true if the event is being published before the event happens
+ */
+export function isPublishedBeforeStarting(
+  event: Pick<Event, "publishedAt" | "dateTime">,
 ) {
-  return now >= event.opensForRegistrationsAt;
-}
-
-export function hasEventClosed(
-  event: Pick<z.output<typeof EventSchema>, "closesForRegistrationsAt">,
-  now = new Date(Date.now()),
-) {
-  return !event.closesForRegistrationsAt
-    ? false
-    : now >= event.closesForRegistrationsAt;
-}
-
-export function isEventPublishedBeforeOpening(
-  event: Pick<
-    z.output<typeof EventSchema>,
-    "opensForRegistrationsAt" | "isPublishedAt"
-  >,
-) {
-  return (
-    !event.isPublishedAt || event.isPublishedAt <= event.opensForRegistrationsAt
-  );
-}
-
-export function isEventPublishedBeforeClosing(
-  event: Pick<
-    z.output<typeof EventSchema>,
-    "isPublishedAt" | "closesForRegistrationsAt"
-  >,
-) {
-  return (
-    !event.isPublishedAt ||
-    !event.closesForRegistrationsAt ||
-    event.isPublishedAt < event.closesForRegistrationsAt
-  );
-}
-
-export function isEventPublishedBeforeStarting(
-  event: Pick<z.output<typeof EventSchema>, "isPublishedAt" | "dateTime">,
-) {
-  return !event.isPublishedAt || event.isPublishedAt <= event.dateTime;
-}
-
-export function isEventOpeningBeforeClosing(
-  event: Pick<
-    z.output<typeof EventSchema>,
-    "closesForRegistrationsAt" | "opensForRegistrationsAt"
-  >,
-) {
-  return (
-    !event.closesForRegistrationsAt ||
-    event.closesForRegistrationsAt > event.opensForRegistrationsAt
-  );
-}
-
-export function isEventOpeningBeforeStarting(
-  event: Pick<
-    z.output<typeof EventSchema>,
-    "opensForRegistrationsAt" | "dateTime"
-  >,
-) {
-  return event.opensForRegistrationsAt <= event.dateTime;
-}
-
-export function isEventClosingBeforeStarting(
-  event: Pick<
-    z.output<typeof EventSchema>,
-    "dateTime" | "closesForRegistrationsAt"
-  >,
-) {
-  return (
-    !event.closesForRegistrationsAt ||
-    event.closesForRegistrationsAt <= event.dateTime
-  );
+  return !event.publishedAt || event.publishedAt <= event.dateTime;
 }
