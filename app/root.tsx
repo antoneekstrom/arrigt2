@@ -39,13 +39,15 @@ export default function App() {
         <Links />
       </head>
       <body>
-        <a href="#main" className="absolute -left-full focus:left-0">
-          Skip to main content
-        </a>
-        <div>
+        <header>
+          <a href="#main" className="absolute -left-full focus:left-0">
+            Skip to main content
+          </a>
           <Link to="/arr">
             <h2 className="text-red-500">arrIgT</h2>
           </Link>
+        </header>
+        <div>
           <div className="flex flex-col place-items-center">
             <Outlet />
           </div>
