@@ -7,6 +7,6 @@ export default defineConfig({
   plugins: [
     remix(),
     tsconfigPaths(),
-    visualizer({ emitFile: true, template: "flamegraph" })
+    visualizer({ emitFile: true, template: "flamegraph" }),
   ],
 })

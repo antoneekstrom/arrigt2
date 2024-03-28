@@ -23,6 +23,8 @@
   "dependencies": {
     "@conform-to/react": "1.0.4",
     "@conform-to/zod": "1.0.4",
+    "@hookform/resolvers": "^3.3.4",
+    "@internationalized/date": "^3.5.2",
     "@prisma/client": "^5.11.0",
     "@remix-run/express": "2.3.1",
     "@remix-run/node": "2.3.1",
@@ -33,6 +35,8 @@
     "react": "18.2.0",
     "react-aria-components": "^1.1.1",
     "react-dom": "18.2.0",
+    "react-hook-form": "^7.51.2",
+    "remix-hook-form": "^4.2.0",
     "tsm": "^2.3.0",
     "zod": "3.22.4",
     "zod-validation-error": "2.1.0"
